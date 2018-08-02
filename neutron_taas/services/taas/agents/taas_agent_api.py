@@ -13,13 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from neutron_taas._i18n import _
 from oslo_config import cfg
 import oslo_messaging as messaging
 
 from neutron.common import rpc as n_rpc
-from oslo_log import log as logging
-
-LOG = logging.getLogger(__name__)
 
 TaasOpts = [
     cfg.StrOpt(
@@ -51,6 +49,14 @@ class TaasAgentRpcCallbackMixin(object):
 
     def __init__(self):
         super(TaasAgentRpcCallbackMixin, self).__init__()
+
+    def consume_api(self, agent_api):
+        """Receive neutron agent API object
+
+        Allows an extension to gain access to resources internal to the
+        neutron agent and otherwise unavailable to the extension.
+        """
+        self.agent_api = agent_api
 
     def create_tap_service(self, context, tap_service, host):
         """Handle RPC cast from plugin to create a tap service."""
