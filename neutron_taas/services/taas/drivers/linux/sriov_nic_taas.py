@@ -35,6 +35,11 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
     def create_tap_service(self, tap_service):
         ts_port = tap_service['port']
 
+        if True:
+            LOG.debug("SRIOV Driver: Inside create_tap_service: Port-id: %(port_id)s",
+                      {'port_id': ts_port['id']})
+            return
+
         port_params = sriov_utils.get_sriov_port_params(ts_port)
 
         if port_params['pf_device'] and port_params['vf_index']:
@@ -53,6 +58,11 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
 
     def delete_tap_service(self, tap_service):
         ts_port = tap_service['port']
+
+        if True:
+            LOG.debug("SRIOV Driver: Inside delete_tap_service: Port-id: %(port_id)s",
+                      {'port_id': ts_port['id']})
+            return
 
         port_params = sriov_utils.get_sriov_port_params(ts_port)
 
@@ -75,6 +85,15 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
         ts_port = tap_flow['ts_port']
         direction = tap_flow['tap_flow']['direction']
         vf_to_vf_all_vlans = False
+
+        if True:
+            LOG.debug("SRIOV Driver: Inside create_tap_flow: "
+                      "SRC Port-id: %(src_port_id)s, DEST Port-id: %(dest_port_id)s "
+                      "Direction: %(direction)s",
+                      {'src_port_id': source_port['id'],
+                       'dest_port_id': ts_port['id'],
+                       'direction': direction})
+            return
 
         src_port_params = sriov_utils.get_sriov_port_params(source_port)
         ts_port_params = sriov_utils.get_sriov_port_params(ts_port)
@@ -155,6 +174,15 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
         source_port = tap_flow['port']
         ts_port = tap_flow['ts_port']
         direction = tap_flow['tap_flow']['direction']
+
+        if True:
+            LOG.debug("SRIOV Driver: Inside delete_tap_flow: "
+                      "SRC Port-id: %(src_port_id)s, DEST Port-id: %(dest_port_id)s "
+                      "Direction: %(direction)s",
+                      {'src_port_id': source_port['id'],
+                       'dest_port_id': ts_port['id'],
+                       'direction': direction})
+            return
 
         src_port_params = sriov_utils.get_sriov_port_params(source_port)
         ts_port_params = sriov_utils.get_sriov_port_params(ts_port)
