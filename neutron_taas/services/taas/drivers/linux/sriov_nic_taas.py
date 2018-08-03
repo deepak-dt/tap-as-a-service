@@ -82,7 +82,7 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
 
     def create_tap_flow(self, tap_flow):
         source_port = tap_flow['port']
-        ts_port = tap_flow['ts_port']
+        ts_port = tap_flow['tap_service_port']
         direction = tap_flow['tap_flow']['direction']
         vf_to_vf_all_vlans = False
 
@@ -172,7 +172,7 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
 
     def delete_tap_flow(self, tap_flow):
         source_port = tap_flow['port']
-        ts_port = tap_flow['ts_port']
+        ts_port = tap_flow['tap_service_port']
         direction = tap_flow['tap_flow']['direction']
 
         if True:
