@@ -38,7 +38,6 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
         if True:
             LOG.debug("SRIOV Driver: Inside create_tap_service: Port-id: %(port_id)s",
                       {'port_id': ts_port['id']})
-            return
 
         port_params = sriov_utils.get_sriov_port_params(ts_port)
 
@@ -62,7 +61,6 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
         if True:
             LOG.debug("SRIOV Driver: Inside delete_tap_service: Port-id: %(port_id)s",
                       {'port_id': ts_port['id']})
-            return
 
         port_params = sriov_utils.get_sriov_port_params(ts_port)
 
@@ -93,7 +91,6 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
                       {'src_port_id': source_port['id'],
                        'dest_port_id': ts_port['id'],
                        'direction': direction})
-            return
 
         src_port_params = sriov_utils.get_sriov_port_params(source_port)
         ts_port_params = sriov_utils.get_sriov_port_params(ts_port)
@@ -182,7 +179,6 @@ class SriovNicTaasDriver(taas_base.TaasDriverBase):
                       {'src_port_id': source_port['id'],
                        'dest_port_id': ts_port['id'],
                        'direction': direction})
-            return
 
         src_port_params = sriov_utils.get_sriov_port_params(source_port)
         ts_port_params = sriov_utils.get_sriov_port_params(ts_port)
