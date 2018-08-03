@@ -19,13 +19,16 @@
 
 
 function install_taas {
-    setup_develop $TAAS_PLUGIN_PATH
+    pip_install --no-deps --editable $TAAS_PLUGIN_PATH
 }
 
 function configure_taas_plugin {
+    if [ ! -d $NEUTRON_CONF_DIR ]; then
+        _create_neutron_conf_dir
+    fi
     cp $TAAS_PLUGIN_PATH/etc/taas_plugin.ini $TAAS_PLUGIN_CONF_FILE
     neutron_server_config_add $TAAS_PLUGIN_CONF_FILE
-    neutron_service_plugin_class_add taas
+    _neutron_service_plugin_class_add taas
 }
 
 function configure_taas_agent {
