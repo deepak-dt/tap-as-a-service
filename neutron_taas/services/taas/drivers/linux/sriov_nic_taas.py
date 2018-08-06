@@ -14,6 +14,7 @@
 
 
 from neutron.conf.agent import common
+from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
 from neutron_taas.services.taas.drivers.linux \
     import sriov_nic_constants as taas_sriov_consts
@@ -22,7 +23,6 @@ from neutron_taas.services.taas.drivers.linux.sriov_nic_utils \
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
-from neutron_taas.extensions import taas
 
 LOG = logging.getLogger(__name__)
 
