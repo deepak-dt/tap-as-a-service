@@ -13,14 +13,14 @@
 # under the License.
 
 
-from neutron.agent.linux import utils
 from neutron.conf.agent import common
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
+from neutron_taas.services.taas.drivers.linux \
+    import sriov_nic_constants as taas_sriov_consts
 from neutron_taas.services.taas.drivers.linux.sriov_nic_utils \
     import SriovNicUtils as sriov_utils
 from oslo_config import cfg
 from oslo_log import log as logging
-from neutron.extensions import portbindings
 from oslo_utils import excutils
 from neutron_taas.extensions import taas
 
@@ -45,9 +45,9 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
     def create_tap_service(self, tap_service):
         ts_port = tap_service['port']
 
-        if True:
-            LOG.debug("SRIOV Driver: Inside create_tap_service: Port-id: %(port_id)s",
-                      {'port_id': ts_port['id']})
+        LOG.debug("SRIOV Driver: Inside create_tap_service: "
+                  "Port-id: %(port_id)s",
+                  {'port_id': ts_port['id']})
 
         port_params = sriov_utils.get_sriov_port_params(ts_port)
 
@@ -68,9 +68,9 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
     def delete_tap_service(self, tap_service):
         ts_port = tap_service['port']
 
-        if True:
-            LOG.debug("SRIOV Driver: Inside delete_tap_service: Port-id: %(port_id)s",
-                      {'port_id': ts_port['id']})
+        LOG.debug("SRIOV Driver: Inside delete_tap_service: "
+                  "Port-id: %(port_id)s",
+                  {'port_id': ts_port['id']})
 
         port_params = sriov_utils.get_sriov_port_params(ts_port)
 
@@ -94,24 +94,24 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         direction = tap_flow['tap_flow']['direction']
         vf_to_vf_all_vlans = False
 
-        if True:
-            LOG.debug("SRIOV Driver: Inside create_tap_flow: "
-                      "SRC Port-id: %(src_port_id)s, DEST Port-id: %(dest_port_id)s "
-                      "Direction: %(direction)s",
-                      {'src_port_id': source_port['id'],
-                       'dest_port_id': ts_port['id'],
-                       'direction': direction})
+        LOG.debug("SRIOV Driver: Inside create_tap_flow: "
+                  "SRC Port-id: %(src_port_id)s, "
+                  "DEST Port-id: %(dest_port_id)s "
+                  "Direction: %(direction)s",
+                  {'src_port_id': source_port['id'],
+                   'dest_port_id': ts_port['id'],
+                   'direction': direction})
 
         src_port_params = sriov_utils.get_sriov_port_params(source_port)
         ts_port_params = sriov_utils.get_sriov_port_params(ts_port)
 
         # If no VLAN filter configured on source port, then include all vlans
         if not src_port_params['src_vlans']:
-            src_port_params['src_vlans'] = '0-4095'
+            src_port_params['src_vlans'] = taas_sriov_consts.VLAN_RANGE
 
         # If no VLAN filter configured on probe port, then include all vlans
         if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = '0-4095'
+            ts_port_params['vlan_mirror'] = taas_sriov_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
                       "Direction %(direction)",
@@ -154,8 +154,6 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         common_vlans_ranges_str = sriov_utils.get_ranges_str_from_list(
             common_vlans_list)
 
-        #####################################
-
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
                 src_port_params['vf_index']:
@@ -182,24 +180,24 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         ts_port = tap_flow['tap_service_port']
         direction = tap_flow['tap_flow']['direction']
 
-        if True:
-            LOG.debug("SRIOV Driver: Inside delete_tap_flow: "
-                      "SRC Port-id: %(src_port_id)s, DEST Port-id: %(dest_port_id)s "
-                      "Direction: %(direction)s",
-                      {'src_port_id': source_port['id'],
-                       'dest_port_id': ts_port['id'],
-                       'direction': direction})
+        LOG.debug("SRIOV Driver: Inside delete_tap_flow: "
+                  "SRC Port-id: %(src_port_id)s, "
+                  "DEST Port-id: %(dest_port_id)s "
+                  "Direction: %(direction)s",
+                  {'src_port_id': source_port['id'],
+                   'dest_port_id': ts_port['id'],
+                   'direction': direction})
 
         src_port_params = sriov_utils.get_sriov_port_params(source_port)
         ts_port_params = sriov_utils.get_sriov_port_params(ts_port)
 
         # If no VLAN filter configured on source port, then include all vlans
         if not src_port_params['src_vlans']:
-            src_port_params['src_vlans'] = '0-4095'
+            src_port_params['src_vlans'] = taas_sriov_consts.VLAN_RANGE
 
         # If no VLAN filter configured on probe port, then include all vlans
         if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = '0-4095'
+            ts_port_params['vlan_mirror'] = taas_sriov_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
                       "Direction %(direction)",
@@ -235,7 +233,6 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         common_vlans_ranges_str = \
             sriov_utils.get_ranges_str_from_list(common_vlans_list)
 
-        #####################################
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
                 src_port_params['vf_index']:
@@ -243,7 +240,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                 sriov_utils.execute_sysfs_command('rem',
                                                   ts_port_params,
                                                   src_port_params,
-                                                  '0-4095',
+                                                  taas_sriov_consts.VLAN_RANGE,
                                                   False,
                                                   'BOTH')
             except Exception:
@@ -252,7 +249,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                         ts_pf_dev=ts_port_params['pf_device'],
                         ts_vf_index=ts_port_params['vf_index'],
                         source_vf_index=src_port_params['vf_index'],
-                        common_vlans_ranges_str='0-4095',
+                        common_vlans_ranges_str=taas_sriov_consts.VLAN_RANGE,
                         vf_to_vf_all_vlans=vf_to_vf_all_vlans,
                         direction=direction)
 

@@ -17,7 +17,8 @@
 
 from neutron.common import rpc as n_rpc
 from neutron import manager
-from neutron_taas.services.taas.drivers.linux import ovs_constants as taas_ovs_consts
+from neutron_taas.services.taas.drivers.linux \
+    import ovs_constants as taas_ovs_consts
 
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents import taas_agent_api as api
@@ -128,13 +129,6 @@ class TaasAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         conn.create_consumer(topics.TAAS_AGENT, endpoints, fanout=False)
         conn.consume_in_threads()
 
-    def ovs_periodic_tasks(self):
-        #
-        # Regenerate the flow in br-tun's TAAS_SEND_FLOOD table
-        # to ensure all existing tunnel ports are included.
-        #
-        self.taas_driver.update_tunnel_flood_flow()
-
     def get_driver_type(self):
         #
         # Get Driver type
@@ -150,9 +144,10 @@ class TaasAgentService(service.Service):
     def start(self):
         super(TaasAgentService, self).start()
 
-        if self.driver.get_driver_type() == taas_ovs_consts.EXTENSION_DRIVER_TYPE:
+        if self.driver.get_driver_type() == \
+                taas_ovs_consts.EXTENSION_DRIVER_TYPE:
             self.tg.add_timer(
                 int(cfg.CONF.taas_agent_periodic_interval),
-                self.driver.ovs_periodic_tasks,
+                self.driver.periodic_tasks,
                 None
             )
