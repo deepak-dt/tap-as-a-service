@@ -54,7 +54,7 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         # Setup key-value manager for ingress BCMC flows
         self.bcmc_kvm = taas_ovs_utils.key_value_mgr(4096)
 
-    def periodic_tasks(self):
+    def periodic_tasks(self, args=None):
         #
         # Regenerate the flow in br-tun's TAAS_SEND_FLOOD table
         # to ensure all existing tunnel ports are included.

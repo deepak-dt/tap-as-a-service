@@ -129,10 +129,13 @@ class TaasAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         conn.create_consumer(topics.TAAS_AGENT, endpoints, fanout=False)
         conn.consume_in_threads()
 
+    def periodic_tasks(self):
+        return self._invoke_driver_for_plugin_api(
+            context=None,
+            args=None,
+            func_name='periodic_tasks')
+
     def get_driver_type(self):
-        #
-        # Get Driver type
-        #
         return self.driver_type
 
 

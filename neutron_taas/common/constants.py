@@ -17,4 +17,3 @@ TAAS = 'TAAS'
 
 # Complete VLAN Id Range
 VLAN_RANGE = '0-4095'
-

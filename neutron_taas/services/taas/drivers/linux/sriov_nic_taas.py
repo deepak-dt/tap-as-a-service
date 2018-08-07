@@ -14,15 +14,16 @@
 
 
 from neutron.conf.agent import common
+from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
 from neutron_taas.services.taas.drivers.linux \
     import sriov_nic_constants as taas_sriov_consts
 from neutron_taas.services.taas.drivers.linux.sriov_nic_utils \
     import SriovNicUtils as sriov_utils
+
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
-from neutron_taas.extensions import taas
 
 LOG = logging.getLogger(__name__)
 
@@ -114,8 +115,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             ts_port_params['vlan_mirror'] = taas_sriov_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
-                      "Direction %(direction)",
-                      {'Direction': direction})
+                      "Direction %(direction)s",
+                      {'direction': direction})
 
         if not src_port_params['pci_slot']:
             LOG.error("No PCI Slot for source_port %(id)s with MAC %(mac)s; ",
@@ -134,8 +135,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         if src_port_params['pf_device'] != ts_port_params['pf_device']:
             LOG.error("SRIOV NIC Driver only supports mirroring b/w "
-                      "VF_src %(VF_src) -> VF_probe %(VF_probe) on same PF. "
-                      "PF_src %(PF_src) and PF_probe %(PF_probe) "
+                      "VF_src %(VF_src)s -> VF_probe %(VF_probe)s on same PF. "
+                      "PF_src %(PF_src)s and PF_probe %(PF_probe)s "
                       "are different; ",
                       {'VF_src': src_port_params['vf_index'],
                        'VF_probe': ts_port_params['vf_index'],
@@ -200,8 +201,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             ts_port_params['vlan_mirror'] = taas_sriov_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
-                      "Direction %(direction)",
-                      {'Direction': direction})
+                      "Direction %(direction)s",
+                      {'direction': direction})
 
         if not src_port_params['pci_slot']:
             LOG.error("No PCI Slot for source_port %(id)s with MAC %(mac)s; ",
