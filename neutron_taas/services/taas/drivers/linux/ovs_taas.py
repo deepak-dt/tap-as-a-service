@@ -14,9 +14,10 @@
 # under the License.
 
 
+from neutron.agent.common import config
 from neutron.agent.common import ovs_lib
 from neutron.agent.linux import utils
-from neutron.conf.agent import common
+#from neutron.conf.agent import common
 # from neutron.plugins.openvswitch.common import constants as ovs_consts
 from neutron.plugins.ml2.drivers.openvswitch.agent.common import constants \
     as ovs_consts
@@ -41,7 +42,7 @@ class OvsTaasDriver(taas_base.TaasAgentDriver):
         super(OvsTaasDriver, self).__init__()
         LOG.debug("Initializing Taas OVS Driver")
         self.agent_api = None
-        self.root_helper = common.get_root_helper(cfg.CONF)
+        self.root_helper = config.get_root_helper(cfg.CONF)
 
     def initialize(self):
         self.int_br = self.agent_api.request_int_br()

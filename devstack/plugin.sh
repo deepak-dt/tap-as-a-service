@@ -34,8 +34,8 @@ if is_service_enabled taas; then
             :
         elif [[ "$2" == "install" ]]; then
             install_taas
-        elif [[ "$2" == "post-config" ]]; then
             configure_taas_plugin
+        elif [[ "$2" == "post-config" ]]; then
             neutron-db-manage --subproject tap-as-a-service upgrade head
             echo "Configuring taas"
             if [ "$TAAS_SERVICE_DRIVER" ]; then
