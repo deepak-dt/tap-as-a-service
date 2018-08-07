@@ -16,8 +16,7 @@
 from neutron.conf.agent import common
 from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
-from neutron_taas.services.taas.drivers.linux \
-    import sriov_nic_constants as taas_sriov_consts
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.services.taas.drivers.linux.sriov_nic_utils \
     import SriovNicUtils as sriov_utils
 
@@ -108,11 +107,11 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         # If no VLAN filter configured on source port, then include all vlans
         if not src_port_params['src_vlans']:
-            src_port_params['src_vlans'] = taas_sriov_consts.VLAN_RANGE
+            src_port_params['src_vlans'] = taas_consts.VLAN_RANGE
 
         # If no VLAN filter configured on probe port, then include all vlans
         if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = taas_sriov_consts.VLAN_RANGE
+            ts_port_params['vlan_mirror'] = taas_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
                       "Direction %(direction)s",
@@ -194,11 +193,11 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         # If no VLAN filter configured on source port, then include all vlans
         if not src_port_params['src_vlans']:
-            src_port_params['src_vlans'] = taas_sriov_consts.VLAN_RANGE
+            src_port_params['src_vlans'] = taas_consts.VLAN_RANGE
 
         # If no VLAN filter configured on probe port, then include all vlans
         if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = taas_sriov_consts.VLAN_RANGE
+            ts_port_params['vlan_mirror'] = taas_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
                       "Direction %(direction)s",
@@ -241,7 +240,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                 sriov_utils.execute_sysfs_command('rem',
                                                   ts_port_params,
                                                   src_port_params,
-                                                  taas_sriov_consts.VLAN_RANGE,
+                                                  taas_consts.VLAN_RANGE,
                                                   False,
                                                   'BOTH')
             except Exception:
@@ -250,7 +249,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                         ts_pf_dev=ts_port_params['pf_device'],
                         ts_vf_index=ts_port_params['vf_index'],
                         source_vf_index=src_port_params['vf_index'],
-                        common_vlans_ranges_str=taas_sriov_consts.VLAN_RANGE,
+                        common_vlans_ranges_str=taas_consts.VLAN_RANGE,
                         vf_to_vf_all_vlans=vf_to_vf_all_vlans,
                         direction=direction)
 
