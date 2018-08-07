@@ -19,8 +19,6 @@ import six
 from neutron_lib.agent import l2_extension
 
 from neutron_taas.services.taas.agents.common import taas_agent
-from neutron_taas.services.taas.drivers.linux import ovs_constants as taas_ovs_consts
-from neutron_taas.services.taas.drivers.linux import sriov_nic_constants as taas_sriov_nic_consts
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -72,13 +70,6 @@ class TaasAgentExtension(l2_extension.L2AgentExtension):
 
     def initialize(self, connection, driver_type):
         """Initialize agent extension."""
-        valid_driver_types = (taas_sriov_nic_consts.EXTENSION_DRIVER_TYPE,
-                              taas_ovs_consts.EXTENSION_DRIVER_TYPE)
-        if driver_type not in valid_driver_types:
-            LOG.error(_LE('TaaS plugin extension is only supported for OVS and '
-                          'SRIOV L2 Extension driver types, currently provided %(driver_type)s'),
-                          {'driver_type': driver_type})
-            sys.exit(1)
         self.taas_agent = taas_agent.TaasAgentRpcCallback(
             cfg.CONF, driver_type)
         self.taas_agent.consume_api(self.agent_api)

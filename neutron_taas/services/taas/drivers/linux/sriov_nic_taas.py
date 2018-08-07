@@ -13,16 +13,16 @@
 # under the License.
 
 
-from neutron.agent.linux import utils
 from neutron.conf.agent import common
+from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.services.taas.drivers.linux.sriov_nic_utils \
     import SriovNicUtils as sriov_utils
+
 from oslo_config import cfg
 from oslo_log import log as logging
-from neutron.extensions import portbindings
 from oslo_utils import excutils
-from neutron_taas.extensions import taas
 
 LOG = logging.getLogger(__name__)
 
@@ -110,15 +110,15 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         # If no VLAN filter configured on source port, then include all vlans
         if not src_port_params['src_vlans']:
-            src_port_params['src_vlans'] = '0-4095'
+            src_port_params['src_vlans'] = taas_consts.VLAN_RANGE
 
         # If no VLAN filter configured on probe port, then include all vlans
         if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = '0-4095'
+            ts_port_params['vlan_mirror'] = taas_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
-                      "Direction %(direction)",
-                      {'Direction': direction})
+                      "Direction %(direction)s",
+                      {'direction': direction})
 
         if not src_port_params['pci_slot']:
             LOG.error("No PCI Slot for source_port %(id)s with MAC %(mac)s; ",
@@ -137,8 +137,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         if src_port_params['pf_device'] != ts_port_params['pf_device']:
             LOG.error("SRIOV NIC Driver only supports mirroring b/w "
-                      "VF_src %(VF_src) -> VF_probe %(VF_probe) on same PF. "
-                      "PF_src %(PF_src) and PF_probe %(PF_probe) "
+                      "VF_src %(VF_src)s -> VF_probe %(VF_probe)s on same PF. "
+                      "PF_src %(PF_src)s and PF_probe %(PF_probe)s "
                       "are different; ",
                       {'VF_src': src_port_params['vf_index'],
                        'VF_probe': ts_port_params['vf_index'],
@@ -156,8 +156,6 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             vlan_mirror_list))
         common_vlans_ranges_str = sriov_utils.get_ranges_str_from_list(
             common_vlans_list)
-
-        #####################################
 
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
@@ -199,15 +197,15 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         # If no VLAN filter configured on source port, then include all vlans
         if not src_port_params['src_vlans']:
-            src_port_params['src_vlans'] = '0-4095'
+            src_port_params['src_vlans'] = taas_consts.VLAN_RANGE
 
         # If no VLAN filter configured on probe port, then include all vlans
         if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = '0-4095'
+            ts_port_params['vlan_mirror'] = taas_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.debug("VF to VF mirroring for all VLANs. "
-                      "Direction %(direction)",
-                      {'Direction': direction})
+                      "Direction %(direction)s",
+                      {'direction': direction})
 
         if not src_port_params['pci_slot']:
             LOG.error("No PCI Slot for source_port %(id)s with MAC %(mac)s; ",
@@ -239,7 +237,6 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         common_vlans_ranges_str = \
             sriov_utils.get_ranges_str_from_list(common_vlans_list)
 
-        #####################################
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
                 src_port_params['vf_index']:
@@ -247,7 +244,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                 sriov_utils.execute_sysfs_command('rem',
                                                   ts_port_params,
                                                   src_port_params,
-                                                  '0-4095',
+                                                  taas_consts.VLAN_RANGE,
                                                   False,
                                                   'BOTH')
             except Exception:
@@ -256,7 +253,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                         ts_pf_dev=ts_port_params['pf_device'],
                         ts_vf_index=ts_port_params['vf_index'],
                         source_vf_index=src_port_params['vf_index'],
-                        common_vlans_ranges_str='0-4095',
+                        common_vlans_ranges_str=taas_consts.VLAN_RANGE,
                         vf_to_vf_all_vlans=vf_to_vf_all_vlans,
                         direction=direction)
 

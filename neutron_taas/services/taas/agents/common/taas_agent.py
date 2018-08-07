@@ -17,7 +17,8 @@
 
 from neutron.common import rpc as n_rpc
 from neutron import manager
-from neutron_taas.services.taas.drivers.linux import ovs_constants as taas_ovs_consts
+from neutron_taas.services.taas.drivers.linux \
+    import ovs_constants as taas_ovs_consts
 
 from neutron_taas.common import topics
 from neutron_taas.services.taas.agents import taas_agent_api as api
@@ -49,8 +50,6 @@ class TaasAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         super(TaasAgentRpcCallback, self).__init__()
 
     def initialize(self):
-        LOG.error("Deepak: TaaS Agent initialize: %(driver_type)s ",
-                  {'driver_type': self.driver_type})
         self.taas_driver = manager.NeutronManager.load_class_for_provider(
             'neutron_taas.taas.agent_drivers', self.driver_type)()
         self.taas_driver.consume_api(self.agent_api)
@@ -130,18 +129,13 @@ class TaasAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         conn.create_consumer(topics.TAAS_AGENT, endpoints, fanout=False)
         conn.consume_in_threads()
 
-    def ovs_periodic_tasks(self):
-        #
-        # Regenerate the flow in br-tun's TAAS_SEND_FLOOD table
-        # to ensure all existing tunnel ports are included.
-        #
-        self.taas_driver.update_tunnel_flood_flow()
+    def periodic_tasks(self):
+        return self._invoke_driver_for_plugin_api(
+            context=None,
+            args=None,
+            func_name='periodic_tasks')
 
     def get_driver_type(self):
-        #
-        # Regenerate the flow in br-tun's TAAS_SEND_FLOOD table
-        # to ensure all existing tunnel ports are included.
-        #
         return self.driver_type
 
 
@@ -153,11 +147,10 @@ class TaasAgentService(service.Service):
     def start(self):
         super(TaasAgentService, self).start()
 
-        LOG.error("Deepak: TaasAgentService: DRIVER=%s" % self.driver.get_driver_type())
-
-        if self.driver.get_driver_type() == taas_ovs_consts.EXTENSION_DRIVER_TYPE:
+        if self.driver.get_driver_type() == \
+                taas_ovs_consts.EXTENSION_DRIVER_TYPE:
             self.tg.add_timer(
                 int(cfg.CONF.taas_agent_periodic_interval),
-                self.driver.ovs_periodic_tasks,
+                self.driver.periodic_tasks,
                 None
             )
