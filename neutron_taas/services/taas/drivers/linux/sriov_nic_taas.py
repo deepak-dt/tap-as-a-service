@@ -13,7 +13,8 @@
 # under the License.
 
 
-from neutron.conf.agent import common
+from neutron.agent.common import config
+#from neutron.conf.agent import common
 from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
 from neutron_taas.common import constants as taas_consts
