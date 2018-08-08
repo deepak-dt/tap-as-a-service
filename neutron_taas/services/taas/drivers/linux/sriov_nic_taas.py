@@ -35,7 +35,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         super(SriovNicTaasDriver, self).__init__()
         LOG.debug("Initializing Taas SRIOV NIC Switch Driver")
         self.agent_api = None
-        self.root_helper = common.get_root_helper(cfg.CONF)
+        self.root_helper = config.get_root_helper(cfg.CONF)
 
     def initialize(self):
         return
