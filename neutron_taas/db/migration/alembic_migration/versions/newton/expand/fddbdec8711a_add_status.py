@@ -34,8 +34,6 @@ import sqlalchemy as sa
 neutron_milestone = [
     migration.NEWTON,
     migration.OCATA,
-    migration.PIKE,
-    migration.QUEENS,
 ]
 
 
