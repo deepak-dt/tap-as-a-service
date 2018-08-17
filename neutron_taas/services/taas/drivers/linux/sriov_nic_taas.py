@@ -50,7 +50,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                   "Port-id: %(port_id)s",
                   {'port_id': ts_port['id']})
 
-        port_params = sriov_utils.get_sriov_port_params(ts_port)
+        port_params = sriov_utils.get_sriov_port_params(sriov_port=ts_port)
 
         if port_params['pf_device'] and port_params['vf_index']:
             LOG.debug("TaaS SRIOV: create_tap_service RPC invoked for "
@@ -73,7 +73,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                   "Port-id: %(port_id)s",
                   {'port_id': ts_port['id']})
 
-        port_params = sriov_utils.get_sriov_port_params(ts_port)
+        port_params = sriov_utils.get_sriov_port_params(sriov_port=ts_port)
 
         if port_params['pf_device'] and port_params['vf_index']:
             LOG.debug("TaaS SRIOV: delete_tap_service RPC invoked for "
