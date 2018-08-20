@@ -35,6 +35,7 @@ class SriovNicUtils(object):
     # Initializes internal state for specified # keys
     #
     def __init__(self):
+        LOG.debug("SriovNicUtils: init called")
         return
 
     #
