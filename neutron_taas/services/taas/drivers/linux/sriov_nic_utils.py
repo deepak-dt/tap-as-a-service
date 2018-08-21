@@ -196,7 +196,7 @@ class SriovNicUtils(object):
         except Exception:
             pass
         if vf_num is None:
-            LOG.warning("TaaS: No net device was found for pci_addr: %(pci_addr)s "
+            LOG.warning("TaaS: No net device was found for pci: %(pci_addr)s "
                         "virtfns_path: %(virtfns_path)s",
                         {'pci_addr': pci_addr,
                          'virtfns_path': virtfns_path})
@@ -315,7 +315,7 @@ class SriovNicUtils(object):
         src_vlans = None
         guest_vlans = None
 
-        LOG.debug("TaaS: Inside get_sriov_port_params 2, port_mac %(port_mac)s; ",
+        LOG.debug("TaaS: 2, port_mac %(port_mac)s; ",
                   {'port_mac': port_mac})
 
         if sriov_port.get(portbindings.PROFILE):
