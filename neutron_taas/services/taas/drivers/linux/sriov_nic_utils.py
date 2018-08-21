@@ -203,7 +203,7 @@ class SriovNicUtils(object):
             raise taas.PciDeviceNotFoundById(id=pci_addr)
         return vf_num
 
-    def get_net_name_by_vf_pci_address(self, vfaddress):
+    def get_net_name_by_vf_pci_address(self, vfaddress, pf_interface=False):
         """Given the VF PCI address, returns the net device name.
 
         Every VF is associated to a PCI network device. This function
@@ -219,8 +219,9 @@ class SriovNicUtils(object):
         LOG.debug("TaaS: get_net_name_by_vf_pci_address vfaddr: %(vfaddr)s ",
                   {'vfaddr': vfaddress})
         try:
-            mac = self.get_mac_by_pci_address(vfaddress).split(':')
-            ifname = self.get_ifname_by_pci_address(vfaddress)
+            mac = self.get_mac_by_pci_address(vfaddress,
+                                              pf_interface).split(':')
+            ifname = self.get_ifname_by_pci_address(vfaddress, pf_interface)
             LOG.debug("TaaS: mac: %(mac)s, ifname: %(ifname)s",
                       {'mac': mac, 'ifname': ifname})
             return ("net_%(ifname)s_%(mac)s" %
@@ -351,7 +352,7 @@ class SriovNicUtils(object):
         LOG.debug("TaaS: vf_index %(vf_index)s; ",
                   {'vf_index': vf_index})
 
-        pf_device = self.get_net_name_by_vf_pci_address(pci_slot)
+        pf_device = self.get_net_name_by_vf_pci_address(pci_slot, True)
 
         LOG.debug("TaaS: pf_device %(pf_device)s; ",
                   {'pf_device': pf_device})
