@@ -35,7 +35,7 @@ class SriovNicUtils(object):
     # Initializes internal state for specified # keys
     #
     def __init__(self):
-        LOG.debug("SriovNicUtils: init called")
+        LOG.info("SriovNicUtils: init called")
         return
 
     #
@@ -64,6 +64,16 @@ class SriovNicUtils(object):
         # Remove all VLANs from mirroring at VF3, ex.
         echo rem 0-4095 > /sys/class/net/p1p1/device/sriov/3/vlan_mirror
         """
+        LOG.info("TaaS sysfs command params %(command)s, "
+                 "ts_port_params %(ts_port_params)s, "
+                 "src_port_params %(src_port_params)s, "
+                 "common_vlans_ranges_str %(common_vlans_ranges_str)s; ",
+                 {'command': command,
+                  'ts_port_params': ts_port_params,
+                  'src_port_params': src_port_params,
+                  'common_vlans_ranges_str': common_vlans_ranges_str,
+                  'vf_to_vf_all_vlans': vf_to_vf_all_vlans,
+                  'direction': direction})
         if vf_to_vf_all_vlans:
             if direction in ['OUT', 'BOTH']:
                 sysfs_kobject_path = \
@@ -74,12 +84,15 @@ class SriovNicUtils(object):
                               '>', sysfs_kobject_path]
 
                 if not os.path.exists(sysfs_kobject_path):
+                    LOG.error("TaaS invalid path execute_sysfs_command")
                     raise n_exc.Invalid("Invalid PF (%s) and/or "
                                         "Source VF (%s) combination" %
                                         (ts_port_params['pf_device'],
                                          src_port_params['vf_index']))
 
                 try:
+                    LOG.info("TaaS executing sysfs_command %(command)s",
+                             {'command': commit_cmd})
                     utils.execute(commit_cmd, run_as_root=True)
                 except (OSError, RuntimeError, IndexError, ValueError) as e:
                     LOG.error("Exception while executing Sysfs command "
@@ -95,12 +108,15 @@ class SriovNicUtils(object):
                               '>', sysfs_kobject_path]
 
                 if not os.path.exists(sysfs_kobject_path):
+                    LOG.error("TaaS invalid path execute_sysfs_command")
                     raise n_exc.Invalid("Invalid PF (%s) and/or "
                                         "Source VF (%s) combination" %
                                         (ts_port_params['pf_device'],
                                          src_port_params['vf_index']))
 
                 try:
+                    LOG.info("TaaS executing sysfs_command %(command)s",
+                             {'command': commit_cmd})
                     utils.execute(commit_cmd, run_as_root=True)
                 except (OSError, RuntimeError, IndexError, ValueError) as e:
                     LOG.error("Exception while executing Sysfs command "
@@ -119,12 +135,15 @@ class SriovNicUtils(object):
                           sysfs_kobject_path]
 
             if not os.path.exists(sysfs_kobject_path):
+                LOG.error("TaaS invalid path execute_sysfs_command")
                 raise n_exc.Invalid("Invalid PF (%s) or Tap-service VF (%s) "
                                     "combination" %
                                     (ts_port_params['pf_device'],
                                      ts_port_params['vf_index']))
 
             try:
+                LOG.info("TaaS executing sysfs_command %(command)s",
+                         {'command': commit_cmd})
                 utils.execute(commit_cmd, run_as_root=True)
             except (OSError, RuntimeError, IndexError, ValueError) as e:
                 LOG.error("Exception while executing Sysfs command "
@@ -183,10 +202,10 @@ class SriovNicUtils(object):
         VIRTFN_RE = re.compile("virtfn(\d+)")
         virtfns_path = "/sys/bus/pci/devices/%s/physfn/virtfn*" % (pci_addr)
         vf_num = None
-        LOG.debug("TaaS: get_vf_num_by_pci_address pci_addr: %(pci_addr)s "
-                    "virtfns_path: %(virtfns_path)s",
-                    {'pci_addr': pci_addr,
-                    'virtfns_path': virtfns_path})
+        LOG.info("TaaS: get_vf_num_by_pci_address pci_addr: %(pci_addr)s "
+                 "virtfns_path: %(virtfns_path)s",
+                 {'pci_addr': pci_addr,
+                 'virtfns_path': virtfns_path})
         try:
             for vf_path in glob.iglob(virtfns_path):
                 if re.search(pci_addr, os.readlink(vf_path)):
@@ -216,14 +235,14 @@ class SriovNicUtils(object):
         In the libvirt parser information tree, the network device stores the
         network capabilities associated to this device.
         """
-        LOG.debug("TaaS: get_net_name_by_vf_pci_address vfaddr: %(vfaddr)s ",
-                  {'vfaddr': vfaddress})
+        LOG.info("TaaS: get_net_name_by_vf_pci_address vfaddr: %(vfaddr)s ",
+                 {'vfaddr': vfaddress})
         try:
             mac = self.get_mac_by_pci_address(vfaddress,
                                               pf_interface).split(':')
             ifname = self.get_ifname_by_pci_address(vfaddress, pf_interface)
-            LOG.debug("TaaS: mac: %(mac)s, ifname: %(ifname)s",
-                      {'mac': mac, 'ifname': ifname})
+            LOG.info("TaaS: mac: %(mac)s, ifname: %(ifname)s",
+                     {'mac': mac, 'ifname': ifname})
             return ("net_%(ifname)s_%(mac)s" %
                     {'ifname': ifname, 'mac': '_'.join(mac)})
         except Exception:
@@ -303,39 +322,39 @@ class SriovNicUtils(object):
         """Returns a dict of common SRIOV parameters for a given SRIOV port
 
         """
-        LOG.debug("TaaS: Inside get_sriov_port_params, sriov_port %(id)s; ",
-                  {'id': sriov_port['id']})
+        LOG.info("TaaS: Inside get_sriov_port_params, sriov_port %(id)s; ",
+                 {'id': sriov_port['id']})
 
         port_mac = sriov_port['mac_address']
 
-        LOG.debug("TaaS: Inside get_sriov_port_params, port_mac %(port_mac)s; ",
-                  {'port_mac': port_mac})
+        LOG.info("TaaS: Inside get_sriov_port_params, port_mac %(port_mac)s; ",
+                 {'port_mac': port_mac})
 
         pci_slot = None
         vlan_mirror = None
         src_vlans = None
         guest_vlans = None
 
-        LOG.debug("TaaS: 2, port_mac %(port_mac)s; ",
-                  {'port_mac': port_mac})
+        LOG.info("TaaS: 2, port_mac %(port_mac)s; ",
+                 {'port_mac': port_mac})
 
         if sriov_port.get(portbindings.PROFILE):
             pci_slot = sriov_port[portbindings.PROFILE].get('pci_slot')
             vlan_mirror = sriov_port[portbindings.PROFILE].get('vlan_mirror')
             guest_vlans = sriov_port[portbindings.PROFILE].get('guest_vlans')
 
-        LOG.debug("TaaS: pci_slot %(pci_slot)s; "
-                  "vlan_mirror %(vlan_mirror)s; "
-                  "guest_vlans %(guest_vlans)s; ",
-                  {'pci_slot': pci_slot,
-                   'vlan_mirror': vlan_mirror,
-                   'guest_vlans': guest_vlans})
+        LOG.info("TaaS: pci_slot %(pci_slot)s; "
+                 "vlan_mirror %(vlan_mirror)s; "
+                 "guest_vlans %(guest_vlans)s; ",
+                 {'pci_slot': pci_slot,
+                  'vlan_mirror': vlan_mirror,
+                  'guest_vlans': guest_vlans})
 
         if sriov_port.get(portbindings.VIF_DETAILS):
             src_vlans = sriov_port[portbindings.VIF_DETAILS].get('vlan')
 
-        LOG.debug("TaaS: src_vlans %(src_vlans)s; ",
-                  {'src_vlans': src_vlans})
+        LOG.info("TaaS: src_vlans %(src_vlans)s; ",
+                 {'src_vlans': src_vlans})
 
         if src_vlans == '0':
             src_vlans = guest_vlans
@@ -345,17 +364,17 @@ class SriovNicUtils(object):
                       {'id': sriov_port['id'], 'mac': port_mac})
             return
 
-        LOG.debug("TaaS: before calling pci_lib routines")
+        LOG.info("TaaS: before calling pci_lib routines")
 
         vf_index = self.get_vf_num_by_pci_address(pci_slot)
 
-        LOG.debug("TaaS: vf_index %(vf_index)s; ",
-                  {'vf_index': vf_index})
+        LOG.info("TaaS: vf_index %(vf_index)s; ",
+                 {'vf_index': vf_index})
 
         pf_device = self.get_net_name_by_vf_pci_address(pci_slot, True)
 
-        LOG.debug("TaaS: pf_device %(pf_device)s; ",
-                  {'pf_device': pf_device})
+        LOG.info("TaaS: pf_device %(pf_device)s; ",
+                 {'pf_device': pf_device})
 
         return {'mac': port_mac, 'pci_slot': pci_slot,
                 'vf_index': vf_index, 'pf_device': pf_device,
