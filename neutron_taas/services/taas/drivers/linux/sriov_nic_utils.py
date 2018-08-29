@@ -67,7 +67,9 @@ class SriovNicUtils(object):
         LOG.info("TaaS sysfs command params %(command)s, "
                  "ts_port_params %(ts_port_params)s, "
                  "src_port_params %(src_port_params)s, "
-                 "common_vlans_ranges_str %(common_vlans_ranges_str)s; ",
+                 "common_vlans_ranges_str %(common_vlans_ranges_str)s; "
+                 "vf_to_vf_all_vlans %(vf_to_vf_all_vlans)s; "
+                 "direction %(direction)s; ",
                  {'command': command,
                   'ts_port_params': ts_port_params,
                   'src_port_params': src_port_params,
@@ -130,7 +132,7 @@ class SriovNicUtils(object):
             sysfs_kobject_path = '/sys/class/net/' + \
                                  ts_port_params['pf_device'] + \
                                  '/device/sriov/' + \
-                                 ts_port_params['vf_index'] + '/'
+                                 ts_port_params['vf_index'] + '/vlan_mirror/'
             commit_cmd = ['echo', command, common_vlans_ranges_str, '>',
                           sysfs_kobject_path]
 
