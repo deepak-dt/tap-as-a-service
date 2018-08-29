@@ -133,6 +133,7 @@ class SriovNicUtils(object):
                                  ts_port_params['pf_device'] + \
                                  '/device/sriov/' + \
                                  ts_port_params['vf_index'] + '/vlan_mirror'
+
             commit_cmd = ['echo', command, common_vlans_ranges_str, '>',
                           sysfs_kobject_path]
 
