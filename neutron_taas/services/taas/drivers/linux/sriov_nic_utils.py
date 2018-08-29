@@ -371,7 +371,8 @@ class SriovNicUtils(object):
         LOG.info("TaaS: vf_index %(vf_index)s; ",
                  {'vf_index': vf_index})
 
-        pf_device = self.get_net_name_by_vf_pci_address(pci_slot, True)
+        #pf_device = self.get_net_name_by_vf_pci_address(pci_slot, True)
+        pf_device = self.get_ifname_by_pci_address(pci_slot, True)
 
         LOG.info("TaaS: pf_device %(pf_device)s; ",
                  {'pf_device': pf_device})
