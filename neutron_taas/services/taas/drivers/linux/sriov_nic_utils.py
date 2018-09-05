@@ -82,8 +82,10 @@ class SriovNicUtils(object):
                     '/sys/class/net/' + ts_port_params['pf_device'] + \
                     '/device/sriov/' + src_port_params['vf_index'] + \
                     '/egress_mirror/'
-                commit_cmd = ['echo', command, ts_port_params['vf_index'],
-                              '>', sysfs_kobject_path]
+                commit_cmd = ['/opt/run_sysfs_command.sh',
+                              command,
+                              ts_port_params['vf_index'],
+                              sysfs_kobject_path]
 
                 if not os.path.exists(sysfs_kobject_path):
                     LOG.error("TaaS invalid path execute_sysfs_command")
@@ -106,8 +108,10 @@ class SriovNicUtils(object):
                     '/sys/class/net/' + ts_port_params['pf_device'] + \
                     '/device/sriov/' + src_port_params['vf_index'] + \
                     '/ingress_mirror/'
-                commit_cmd = ['echo', command, ts_port_params['vf_index'],
-                              '>', sysfs_kobject_path]
+                commit_cmd = ['/opt/run_sysfs_command.sh',
+                              command,
+                              ts_port_params['vf_index'],
+                              sysfs_kobject_path]
 
                 if not os.path.exists(sysfs_kobject_path):
                     LOG.error("TaaS invalid path execute_sysfs_command")
@@ -134,7 +138,9 @@ class SriovNicUtils(object):
                                  '/device/sriov/' + \
                                  ts_port_params['vf_index'] + '/vlan_mirror'
 
-            commit_cmd = ['echo', command, common_vlans_ranges_str, '>',
+            commit_cmd = ['/opt/run_sysfs_command.sh',
+                          command,
+                          common_vlans_ranges_str,
                           sysfs_kobject_path]
 
             if not os.path.exists(sysfs_kobject_path):
