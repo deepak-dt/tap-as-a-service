@@ -259,6 +259,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             src_port_params['src_vlans'] = taas_consts.VLAN_RANGE
             LOG.info("TaaS no src_vlans in src_port")
 
+        LOG.info("Deepak: debug-1")
+
         # If no VLAN filter configured on probe port, then include all vlans
         if not ts_port_params['vlan_mirror']:
             ts_port_params['vlan_mirror'] = taas_consts.VLAN_RANGE
@@ -266,6 +268,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             LOG.info("VF to VF mirroring for all VLANs. "
                      "Direction %(direction)s",
                      {'direction': direction})
+
+        LOG.info("Deepak: debug-2")
 
         if not src_port_params['pci_slot']:
             LOG.error("No PCI Slot for source_port %(id)s with MAC %(mac)s; ",
@@ -275,6 +279,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             raise taas.PciSlotNotFound(port_id=source_port['id'],
                                        mac=src_port_params['mac'])
 
+        LOG.info("Deepak: debug-3")
+
         if not ts_port_params['pci_slot']:
             LOG.error("No PCI Slot for ts_port %(id)s with MAC %(mac)s; ",
                       {'id': ts_port['id'], 'mac': ts_port_params['mac'],
@@ -282,21 +288,40 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             raise taas.PciSlotNotFound(port_id=ts_port['id'],
                                        mac=ts_port_params['mac'])
 
+        LOG.info("Deepak: debug-4")
+
         # Fetch common VLAN tags
         src_vlans_list = []
         for src_vlans_str in tap_flow['src_vlans_list']:
             src_vlans_list.extend(self.sriov_utils.get_list_from_ranges_str(
                 src_vlans_str))
 
+        LOG.info("Deepak: debug-5 src_vlans_list %(src_vlans_list)s ",
+                 {'src_vlans_list': src_vlans_list})
+
         src_vlans_list = sorted(set(src_vlans_list))
+
+        LOG.info("Deepak: debug-6 src_vlans_list %(src_vlans_list)s ",
+                 {'src_vlans_list': src_vlans_list})
+
         vlan_mirror_list = sorted(set(
             self.sriov_utils.get_list_from_ranges_str(
                 ts_port_params['vlan_mirror'])))
 
+        LOG.info("Deepak: debug-7 vlan_mirror_list %(vlan_mirror_list)s ",
+                 {'vlan_mirror_list': vlan_mirror_list})
+
         common_vlans_list = \
             list(set(src_vlans_list).intersection(vlan_mirror_list))
+
+        LOG.info("Deepak: debug-8 common_vlans_list %(common_vlans_list)s ",
+                 {'common_vlans_list': common_vlans_list})
+
         common_vlans_ranges_str = \
             self.sriov_utils.get_ranges_str_from_list(common_vlans_list)
+
+        LOG.info("Deepak: debug-9 common_vlans_ranges_str %(common_vlans_ranges_str)s ",
+                 {'common_vlans_ranges_str': common_vlans_ranges_str})
 
         LOG.info("TaaS src_vlans_list %(src_vlans_list)s, "
                  "vlan_mirror_list %(vlan_mirror_list)s, "
