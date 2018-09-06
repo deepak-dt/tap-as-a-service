@@ -336,9 +336,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                     LOG.info("TaaS invoking execute_sysfs_command")
                     self.sriov_utils.execute_sysfs_command(
                         'add',
-                        ts_port_params['pf_device'],
-                        ts_port_params['vf_index'],
-                        src_port_params['vf_index'],
+                        ts_port_params,
+                        src_port_params,
                         common_vlans_ranges_str,
                         False,
                         'BOTH')

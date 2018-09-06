@@ -176,12 +176,8 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
             source_port = self.service_plugin._get_port_details(
                 context._plugin_context, tap_flow['source_port'])
 
-            LOG.info("taas: active TF's source_port %(source_port)s",
-                     {'source_port': source_port})
-
-            # Exclude the port being deleted
-            #if source_port[id] == port[id]:
-            #    continue
+            LOG.debug("taas: active TF's source_port %(source_port)s",
+                      {'source_port': source_port})
 
             if source_port.get(portbindings.VIF_DETAILS):
                 src_vlans = source_port[portbindings.VIF_DETAILS].get('vlan')
