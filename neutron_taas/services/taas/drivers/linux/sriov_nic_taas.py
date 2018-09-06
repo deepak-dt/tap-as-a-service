@@ -288,91 +288,96 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             raise taas.PciSlotNotFound(port_id=ts_port['id'],
                                        mac=ts_port_params['mac'])
 
-        LOG.info("Deepak: debug-4")
+        LOG.info("Deepak: debug-4 src_vlans_list %(src_vlans_list)s ",
+                 {'src_vlans_list': tap_flow['src_vlans_list']})
 
         # Fetch common VLAN tags
         src_vlans_list = []
         for src_vlans_str in tap_flow['src_vlans_list']:
+            LOG.info("Deepak: debug-4a src_vlans_str %(src_vlans_str)s ",
+                     {'src_vlans_str': src_vlans_str})
             src_vlans_list.extend(self.sriov_utils.get_list_from_ranges_str(
                 src_vlans_str))
+            LOG.info("Deepak: debug-4b src_vlans_list %(src_vlans_list)s ",
+                     {'src_vlans_list': src_vlans_list})
 
         LOG.info("Deepak: debug-5 src_vlans_list %(src_vlans_list)s ",
                  {'src_vlans_list': src_vlans_list})
 
-        src_vlans_list = sorted(set(src_vlans_list))
-
-        LOG.info("Deepak: debug-6 src_vlans_list %(src_vlans_list)s ",
-                 {'src_vlans_list': src_vlans_list})
-
-        vlan_mirror_list = sorted(set(
-            self.sriov_utils.get_list_from_ranges_str(
-                ts_port_params['vlan_mirror'])))
-
-        LOG.info("Deepak: debug-7 vlan_mirror_list %(vlan_mirror_list)s ",
-                 {'vlan_mirror_list': vlan_mirror_list})
-
-        common_vlans_list = \
-            list(set(src_vlans_list).intersection(vlan_mirror_list))
-
-        LOG.info("Deepak: debug-8 common_vlans_list %(common_vlans_list)s ",
-                 {'common_vlans_list': common_vlans_list})
-
-        common_vlans_ranges_str = \
-            self.sriov_utils.get_ranges_str_from_list(common_vlans_list)
-
-        LOG.info("Deepak: debug-9 common_vlans_ranges_str %(common_vlans_ranges_str)s ",
-                 {'common_vlans_ranges_str': common_vlans_ranges_str})
-
-        LOG.info("TaaS src_vlans_list %(src_vlans_list)s, "
-                 "vlan_mirror_list %(vlan_mirror_list)s, "
-                 "common_vlans_list %(common_vlans_list)s, "
-                 "common_vlans_ranges_str %(common_vlans_ranges_str)s; ",
-                 {'src_vlans_list': src_vlans_list,
-                  'vlan_mirror_list': vlan_mirror_list,
-                  'common_vlans_list': common_vlans_list,
-                  'common_vlans_ranges_str': common_vlans_ranges_str})
-
-        if ts_port_params['pf_device'] and \
-                ts_port_params['vf_index'] and \
-                src_port_params['vf_index']:
-            try:
-                LOG.info("TaaS invoking execute_sysfs_command")
-                self.sriov_utils.execute_sysfs_command('rem',
-                                                       ts_port_params,
-                                                       src_port_params,
-                                                       taas_consts.VLAN_RANGE,
-                                                       False,
-                                                       'BOTH')
-            except Exception:
-                LOG.error("TaaS error in invoking execute_sysfs_command")
-                with excutils.save_and_reraise_exception():
-                    raise taas.SriovNicSwitchDriverInvocationError(
-                        ts_pf_dev=ts_port_params['pf_device'],
-                        ts_vf_index=ts_port_params['vf_index'],
-                        source_vf_index=src_port_params['vf_index'],
-                        common_vlans_ranges_str=taas_consts.VLAN_RANGE,
-                        vf_to_vf_all_vlans=vf_to_vf_all_vlans,
-                        direction=direction)
-
-            try:
-                LOG.info("TaaS invoking execute_sysfs_command")
-                self.sriov_utils.execute_sysfs_command(
-                    'add',
-                    ts_port_params['pf_device'],
-                    ts_port_params['vf_index'],
-                    src_port_params['vf_index'],
-                    common_vlans_ranges_str,
-                    False,
-                    'BOTH')
-            except Exception:
-                LOG.error("TaaS error in invoking execute_sysfs_command")
-                with excutils.save_and_reraise_exception():
-                    raise taas.SriovNicSwitchDriverInvocationError(
-                        ts_pf_dev=ts_port_params['pf_device'],
-                        ts_vf_index=ts_port_params['vf_index'],
-                        source_vf_index=src_port_params['vf_index'],
-                        common_vlans_ranges_str=common_vlans_ranges_str,
-                        vf_to_vf_all_vlans=vf_to_vf_all_vlans,
-                        direction=direction)
+        # src_vlans_list = sorted(set(src_vlans_list))
+        #
+        # LOG.info("Deepak: debug-6 src_vlans_list %(src_vlans_list)s ",
+        #          {'src_vlans_list': src_vlans_list})
+        #
+        # vlan_mirror_list = sorted(set(
+        #     self.sriov_utils.get_list_from_ranges_str(
+        #         ts_port_params['vlan_mirror'])))
+        #
+        # LOG.info("Deepak: debug-7 vlan_mirror_list %(vlan_mirror_list)s ",
+        #          {'vlan_mirror_list': vlan_mirror_list})
+        #
+        # common_vlans_list = \
+        #     list(set(src_vlans_list).intersection(vlan_mirror_list))
+        #
+        # LOG.info("Deepak: debug-8 common_vlans_list %(common_vlans_list)s ",
+        #          {'common_vlans_list': common_vlans_list})
+        #
+        # common_vlans_ranges_str = \
+        #     self.sriov_utils.get_ranges_str_from_list(common_vlans_list)
+        #
+        # LOG.info("Deepak: debug-9 common_vlans_ranges_str %(common_vlans_ranges_str)s ",
+        #          {'common_vlans_ranges_str': common_vlans_ranges_str})
+        #
+        # LOG.info("TaaS src_vlans_list %(src_vlans_list)s, "
+        #          "vlan_mirror_list %(vlan_mirror_list)s, "
+        #          "common_vlans_list %(common_vlans_list)s, "
+        #          "common_vlans_ranges_str %(common_vlans_ranges_str)s; ",
+        #          {'src_vlans_list': src_vlans_list,
+        #           'vlan_mirror_list': vlan_mirror_list,
+        #           'common_vlans_list': common_vlans_list,
+        #           'common_vlans_ranges_str': common_vlans_ranges_str})
+        #
+        # if ts_port_params['pf_device'] and \
+        #         ts_port_params['vf_index'] and \
+        #         src_port_params['vf_index']:
+        #     try:
+        #         LOG.info("TaaS invoking execute_sysfs_command")
+        #         self.sriov_utils.execute_sysfs_command('rem',
+        #                                                ts_port_params,
+        #                                                src_port_params,
+        #                                                taas_consts.VLAN_RANGE,
+        #                                                False,
+        #                                                'BOTH')
+        #     except Exception:
+        #         LOG.error("TaaS error in invoking execute_sysfs_command")
+        #         with excutils.save_and_reraise_exception():
+        #             raise taas.SriovNicSwitchDriverInvocationError(
+        #                 ts_pf_dev=ts_port_params['pf_device'],
+        #                 ts_vf_index=ts_port_params['vf_index'],
+        #                 source_vf_index=src_port_params['vf_index'],
+        #                 common_vlans_ranges_str=taas_consts.VLAN_RANGE,
+        #                 vf_to_vf_all_vlans=vf_to_vf_all_vlans,
+        #                 direction=direction)
+        #
+        #     try:
+        #         LOG.info("TaaS invoking execute_sysfs_command")
+        #         self.sriov_utils.execute_sysfs_command(
+        #             'add',
+        #             ts_port_params['pf_device'],
+        #             ts_port_params['vf_index'],
+        #             src_port_params['vf_index'],
+        #             common_vlans_ranges_str,
+        #             False,
+        #             'BOTH')
+        #     except Exception:
+        #         LOG.error("TaaS error in invoking execute_sysfs_command")
+        #         with excutils.save_and_reraise_exception():
+        #             raise taas.SriovNicSwitchDriverInvocationError(
+        #                 ts_pf_dev=ts_port_params['pf_device'],
+        #                 ts_vf_index=ts_port_params['vf_index'],
+        #                 source_vf_index=src_port_params['vf_index'],
+        #                 common_vlans_ranges_str=common_vlans_ranges_str,
+        #                 vf_to_vf_all_vlans=vf_to_vf_all_vlans,
+        #                 direction=direction)
 
         return
