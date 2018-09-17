@@ -46,7 +46,8 @@ def upgrade():
                   sa.ForeignKey("tap_services.id",
                                 ondelete="CASCADE"), nullable=False),
         sa.Column('source_port', sa.String(length=36), nullable=False),
-        sa.Column('direction', direction_types, nullable=False))
+        sa.Column('direction', direction_types, nullable=False),
+        sa.Column('vlan_mirror', sa.String(length=1024), nullable=True))
 
     op.create_table(
         'tap_id_associations',
