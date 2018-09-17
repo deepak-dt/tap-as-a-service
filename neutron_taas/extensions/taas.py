@@ -28,6 +28,8 @@ from oslo_config import cfg
 
 import six
 
+RANGE_REGEX = r"^([0-9]+(-[0-9]+)?)(,([0-9]+(-[0-9]+)?))*$"
+
 # TaaS exception handling classes
 
 
@@ -129,7 +131,10 @@ RESOURCE_ATTRIBUTE_MAP = {
                       'validate': {'type:values': direction_enum},
                       'is_visible': True},
         'status': {'allow_post': False, 'allow_put': False,
-                   'is_visible': True}
+                   'is_visible': True},
+        'vlan_mirror': {'allow_post': True, 'allow_put': False,
+                        'validate': {'type:regex_or_none': RANGE_REGEX},
+                        'is_visible': True, 'default': None}
     }
 }
 

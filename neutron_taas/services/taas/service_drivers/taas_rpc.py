@@ -128,6 +128,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                      tf['source_port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
+        vlan_mirror = tf['vlan_mirror']
         # Extract the tap-service port
         ts = self.service_plugin.get_tap_service(context._plugin_context,
                                                  tf['tap_service_id'])
@@ -140,7 +141,8 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                    'port_mac': port_mac,
                    'taas_id': taas_id,
                    'port': port,
-                   'tap_service_port': ts_port}
+                   'tap_service_port': ts_port,
+                   'vlan_mirror': vlan_mirror}
 
         self.agent_rpc.create_tap_flow(context._plugin_context, rpc_msg, host)
         return
@@ -157,6 +159,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                      tf['source_port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
+        vlan_mirror = tf['vlan_mirror']
         # Extract the tap-service port
         ts = self.service_plugin.get_tap_service(context._plugin_context,
                                                  tf['tap_service_id'])
@@ -182,10 +185,6 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
             if source_port.get(portbindings.VIF_DETAILS):
                 src_vlans = source_port[portbindings.VIF_DETAILS].get('vlan')
 
-            if src_vlans == '0' and source_port.get(portbindings.PROFILE):
-                src_vlans = source_port[portbindings.PROFILE].get(
-                    'guest_vlans')
-
             # If no VLAN filter configured on source port,
             # then include all vlans
             if not src_vlans:
@@ -200,7 +199,8 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                    'taas_id': taas_id,
                    'port': port,
                    'tap_service_port': ts_port,
-                   'source_vlans_list': src_vlans_list}
+                   'source_vlans_list': src_vlans_list,
+                   'vlan_mirror': vlan_mirror}
 
         self.agent_rpc.delete_tap_flow(context._plugin_context, rpc_msg, host)
         return

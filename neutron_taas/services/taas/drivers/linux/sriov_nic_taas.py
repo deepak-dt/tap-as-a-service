@@ -56,13 +56,12 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         LOG.info("TaaS SRIOV: create_tap_service RPC invoked for "
                  "port %(id)s, MAC %(ts_port_mac)s, PCI %(ts_pci_slot)s, "
                  "VF-Index %(vf_index)s, PF-Device %(pf_device)s, "
-                 "VLAN-Mirror %(vlan_mirror)s, src_vlans %(src_vlans)s; ",
+                 "src_vlans %(src_vlans)s; ",
                  {'id': ts_port['id'],
                   'ts_port_mac': port_params['mac'],
                   'ts_pci_slot': port_params['pci_slot'],
                   'vf_index': port_params['vf_index'],
                   'pf_device': port_params['pf_device'],
-                  'vlan_mirror': port_params['vlan_mirror'],
                   'src_vlans': port_params['src_vlans']})
 
         return
@@ -79,13 +78,12 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         LOG.info("TaaS SRIOV: delete_tap_service RPC invoked for "
                  "port %(id)s, MAC %(ts_port_mac)s, PCI %(ts_pci_slot)s, "
                  "VF-Index %(vf_index)s, PF-Device %(pf_device)s, "
-                 "VLAN-Mirror %(vlan_mirror)s, src_vlans %(src_vlans)s; ",
+                 "src_vlans %(src_vlans)s; ",
                  {'id': ts_port['id'],
                   'ts_port_mac': port_params['mac'],
                   'ts_pci_slot': port_params['pci_slot'],
                   'vf_index': port_params['vf_index'],
                   'pf_device': port_params['pf_device'],
-                  'vlan_mirror': port_params['vlan_mirror'],
                   'src_vlans': port_params['src_vlans']})
 
         return
@@ -94,6 +92,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         source_port = tap_flow['port']
         ts_port = tap_flow['tap_service_port']
         direction = tap_flow['tap_flow']['direction']
+        vlan_mirror = tap_flow['vlan_mirror']
         vf_to_vf_all_vlans = False
 
         LOG.info("SRIOV Driver: Inside create_tap_flow: "
@@ -110,13 +109,12 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         LOG.info("TaaS src_port_params "
                  "port %(id)s, MAC %(port_mac)s, PCI %(pci_slot)s, "
                  "VF-Index %(vf_index)s, PF-Device %(pf_device)s, "
-                 "VLAN-Mirror %(vlan_mirror)s, src_vlans %(src_vlans)s; ",
+                 "src_vlans %(src_vlans)s; ",
                  {'id': source_port['id'],
                   'port_mac': src_port_params['mac'],
                   'pci_slot': src_port_params['pci_slot'],
                   'vf_index': src_port_params['vf_index'],
                   'pf_device': src_port_params['pf_device'],
-                  'vlan_mirror': src_port_params['vlan_mirror'],
                   'src_vlans': src_port_params['src_vlans']})
 
         LOG.info("TaaS ts_port_params "
@@ -128,7 +126,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                   'pci_slot': ts_port_params['pci_slot'],
                   'vf_index': ts_port_params['vf_index'],
                   'pf_device': ts_port_params['pf_device'],
-                  'vlan_mirror': ts_port_params['vlan_mirror'],
+                  'vlan_mirror': vlan_mirror,
                   'src_vlans': ts_port_params['src_vlans']})
 
         # If no VLAN filter configured on source port, then include all vlans
@@ -137,8 +135,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             LOG.info("TaaS no src_vlans in src_port")
 
         # If no VLAN filter configured on probe port, then include all vlans
-        if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = taas_consts.VLAN_RANGE
+        if not vlan_mirror:
+            vlan_mirror = taas_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.info("VF to VF mirroring for all VLANs. "
                      "Direction %(direction)s",
@@ -175,7 +173,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             src_port_params['src_vlans'])))
         vlan_mirror_list = sorted(set(
             self.sriov_utils.get_list_from_ranges_str(
-                ts_port_params['vlan_mirror'])))
+                vlan_mirror)))
 
         common_vlans_list = list(set(src_vlans_list).intersection(
             vlan_mirror_list))
@@ -217,6 +215,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
     def delete_tap_flow(self, tap_flow):
         source_port = tap_flow['port']
         ts_port = tap_flow['tap_service_port']
+        vlan_mirror = tap_flow['vlan_mirror']
         direction = tap_flow['tap_flow']['direction']
 
         LOG.info("SRIOV Driver: Inside delete_tap_flow: "
@@ -233,13 +232,12 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         LOG.info("TaaS src_port_params "
                  "port %(id)s, MAC %(port_mac)s, PCI %(pci_slot)s, "
                  "VF-Index %(vf_index)s, PF-Device %(pf_device)s, "
-                 "VLAN-Mirror %(vlan_mirror)s, src_vlans %(src_vlans)s; ",
+                 "src_vlans %(src_vlans)s; ",
                  {'id': source_port['id'],
                   'port_mac': src_port_params['mac'],
                   'pci_slot': src_port_params['pci_slot'],
                   'vf_index': src_port_params['vf_index'],
                   'pf_device': src_port_params['pf_device'],
-                  'vlan_mirror': src_port_params['vlan_mirror'],
                   'src_vlans': src_port_params['src_vlans']})
 
         LOG.info("TaaS ts_port_params "
@@ -251,7 +249,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                   'pci_slot': ts_port_params['pci_slot'],
                   'vf_index': ts_port_params['vf_index'],
                   'pf_device': ts_port_params['pf_device'],
-                  'vlan_mirror': ts_port_params['vlan_mirror'],
+                  'vlan_mirror': vlan_mirror,
                   'src_vlans': ts_port_params['src_vlans']})
 
         # If no VLAN filter configured on source port, then include all vlans
@@ -260,8 +258,8 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             LOG.info("TaaS no src_vlans in src_port")
 
         # If no VLAN filter configured on probe port, then include all vlans
-        if not ts_port_params['vlan_mirror']:
-            ts_port_params['vlan_mirror'] = taas_consts.VLAN_RANGE
+        if not vlan_mirror:
+            vlan_mirror = taas_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.info("VF to VF mirroring for all VLANs. "
                      "Direction %(direction)s",
@@ -277,8 +275,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         if not ts_port_params['pci_slot']:
             LOG.error("No PCI Slot for ts_port %(id)s with MAC %(mac)s; ",
-                      {'id': ts_port['id'], 'mac': ts_port_params['mac'],
-                       'vlan_mirror': ts_port_params['vlan_mirror']})
+                      {'id': ts_port['id'], 'mac': ts_port_params['mac']})
             raise taas.PciSlotNotFound(port_id=ts_port['id'],
                                        mac=ts_port_params['mac'])
 
@@ -292,7 +289,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         vlan_mirror_list = sorted(set(
             self.sriov_utils.get_list_from_ranges_str(
-                ts_port_params['vlan_mirror'])))
+                vlan_mirror)))
 
         common_vlans_list = \
             list(set(src_vlans_list).intersection(vlan_mirror_list))

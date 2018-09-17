@@ -349,24 +349,15 @@ class SriovNicUtils(object):
 
         if sriov_port.get(portbindings.PROFILE):
             pci_slot = sriov_port[portbindings.PROFILE].get('pci_slot')
-            vlan_mirror = sriov_port[portbindings.PROFILE].get('vlan_mirror')
-            guest_vlans = sriov_port[portbindings.PROFILE].get('guest_vlans')
 
-        LOG.info("TaaS: pci_slot %(pci_slot)s; "
-                 "vlan_mirror %(vlan_mirror)s; "
-                 "guest_vlans %(guest_vlans)s; ",
-                 {'pci_slot': pci_slot,
-                  'vlan_mirror': vlan_mirror,
-                  'guest_vlans': guest_vlans})
+        LOG.info("TaaS: pci_slot %(pci_slot)s; ",
+                 {'pci_slot': pci_slot})
 
         if sriov_port.get(portbindings.VIF_DETAILS):
             src_vlans = sriov_port[portbindings.VIF_DETAILS].get('vlan')
 
         LOG.info("TaaS: src_vlans %(src_vlans)s; ",
                  {'src_vlans': src_vlans})
-
-        if src_vlans == '0':
-            src_vlans = guest_vlans
 
         if not pci_slot:
             LOG.error("No PCI Slot for sriov_port %(id)s with MAC %(mac)s; ",
@@ -380,7 +371,6 @@ class SriovNicUtils(object):
         LOG.info("TaaS: vf_index %(vf_index)s; ",
                  {'vf_index': vf_index})
 
-        #pf_device = self.get_net_name_by_vf_pci_address(pci_slot, True)
         pf_device = self.get_ifname_by_pci_address(pci_slot, True)
 
         LOG.info("TaaS: pf_device %(pf_device)s; ",
@@ -388,4 +378,4 @@ class SriovNicUtils(object):
 
         return {'mac': port_mac, 'pci_slot': pci_slot,
                 'vf_index': vf_index, 'pf_device': pf_device,
-                'vlan_mirror': vlan_mirror, 'src_vlans': src_vlans}
+                'src_vlans': src_vlans}
