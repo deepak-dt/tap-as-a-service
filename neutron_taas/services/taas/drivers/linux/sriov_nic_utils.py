@@ -211,7 +211,7 @@ class SriovNicUtils(object):
         VIRTFN_RE = re.compile("virtfn(\d+)")
         virtfns_path = "/sys/bus/pci/devices/%s/physfn/virtfn*" % (pci_addr)
         vf_num = None
-        LOG.info("TaaS: get_vf_num_by_pci_address pci_addr: %(pci_addr)s "
+        LOG.info("TaaS: pci_addr: %(pci_addr)s "
                  "virtfns_path: %(virtfns_path)s",
                  {'pci_addr': pci_addr,
                  'virtfns_path': virtfns_path})
@@ -244,7 +244,7 @@ class SriovNicUtils(object):
         In the libvirt parser information tree, the network device stores the
         network capabilities associated to this device.
         """
-        LOG.info("TaaS: get_net_name_by_vf_pci_address vfaddr: %(vfaddr)s ",
+        LOG.info("TaaS: vfaddr: %(vfaddr)s ",
                  {'vfaddr': vfaddress})
         try:
             mac = self.get_mac_by_pci_address(vfaddress,
@@ -331,7 +331,7 @@ class SriovNicUtils(object):
         """Returns a dict of common SRIOV parameters for a given SRIOV port
 
         """
-        LOG.info("TaaS: Inside get_sriov_port_params, sriov_port %(id)s; ",
+        LOG.info("TaaS: sriov_port %(id)s; ",
                  {'id': sriov_port['id']})
 
         port_mac = sriov_port['mac_address']
@@ -340,9 +340,7 @@ class SriovNicUtils(object):
                  {'port_mac': port_mac})
 
         pci_slot = None
-        vlan_mirror = None
         src_vlans = None
-        guest_vlans = None
 
         LOG.info("TaaS: 2, port_mac %(port_mac)s; ",
                  {'port_mac': port_mac})
@@ -350,14 +348,13 @@ class SriovNicUtils(object):
         if sriov_port.get(portbindings.PROFILE):
             pci_slot = sriov_port[portbindings.PROFILE].get('pci_slot')
 
-        LOG.info("TaaS: pci_slot %(pci_slot)s; ",
-                 {'pci_slot': pci_slot})
-
         if sriov_port.get(portbindings.VIF_DETAILS):
             src_vlans = sriov_port[portbindings.VIF_DETAILS].get('vlan')
 
-        LOG.info("TaaS: src_vlans %(src_vlans)s; ",
-                 {'src_vlans': src_vlans})
+        LOG.info("TaaS: pci_slot %(pci_slot)s; "
+                 "src_vlans %(src_vlans)s; ",
+                 {'pci_slot': pci_slot,
+                  'src_vlans': src_vlans})
 
         if not pci_slot:
             LOG.error("No PCI Slot for sriov_port %(id)s with MAC %(mac)s; ",

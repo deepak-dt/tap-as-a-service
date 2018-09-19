@@ -19,6 +19,8 @@ from neutron.common import rpc as n_rpc
 from neutron.extensions import portbindings
 from neutron_lib import constants
 from neutron_lib import exceptions as n_exc
+
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.common import topics
 from neutron_taas.services.taas import service_drivers
 from neutron_taas.services.taas.service_drivers import taas_agent_api
@@ -128,7 +130,6 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                      tf['source_port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
-        vlan_mirror = tf['vlan_mirror']
         # Extract the tap-service port
         ts = self.service_plugin.get_tap_service(context._plugin_context,
                                                  tf['tap_service_id'])
@@ -141,8 +142,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                    'port_mac': port_mac,
                    'taas_id': taas_id,
                    'port': port,
-                   'tap_service_port': ts_port,
-                   'vlan_mirror': vlan_mirror}
+                   'tap_service_port': ts_port}
 
         self.agent_rpc.create_tap_flow(context._plugin_context, rpc_msg, host)
         return
@@ -159,7 +159,6 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                                                      tf['source_port'])
         host = port['binding:host_id']
         port_mac = port['mac_address']
-        vlan_mirror = tf['vlan_mirror']
         # Extract the tap-service port
         ts = self.service_plugin.get_tap_service(context._plugin_context,
                                                  tf['tap_service_id'])
@@ -174,6 +173,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
             fields=['source_port'])
 
         src_vlans_list = []
+        vlan_mirror_list = []
 
         for tap_flow in active_tfs:
             source_port = self.service_plugin._get_port_details(
@@ -188,9 +188,17 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
             # If no VLAN filter configured on source port,
             # then include all vlans
             if not src_vlans:
-                src_vlans = '0-4095'
+                src_vlans = taas_consts.VLAN_RANGE
 
             src_vlans_list.append(src_vlans)
+
+            vlan_mirror = tap_flow.vlan_mirror
+            # If no VLAN mirror configured for tap-flow,
+            # then include all vlans
+            if not vlan_mirror:
+                vlan_mirror = taas_consts.VLAN_RANGE
+
+            vlan_mirror_list.append(vlan_mirror)
 
         # Send RPC message to both the source port host and
         # tap service(destination) port host
@@ -200,7 +208,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                    'port': port,
                    'tap_service_port': ts_port,
                    'source_vlans_list': src_vlans_list,
-                   'vlan_mirror': vlan_mirror}
+                   'vlan_mirror_list': vlan_mirror_list}
 
         self.agent_rpc.delete_tap_flow(context._plugin_context, rpc_msg, host)
         return

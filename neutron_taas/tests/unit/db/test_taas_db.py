@@ -19,6 +19,7 @@ from neutron_lib import context
 from oslo_utils import importutils
 from oslo_utils import uuidutils
 
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.db import taas_db
 from neutron_taas.extensions import taas
 
@@ -49,7 +50,7 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
                            direction='BOTH', source_port=None,
                            vlan_mirror=None):
         source_port = source_port or _uuid()
-        vlan_mirror = vlan_mirror or "0-4095"
+        vlan_mirror = vlan_mirror or taas_consts.VLAN_RANGE
         return {"tap_flow": {"name": name,
                              "tenant_id": self.tenant_id,
                              "description": "test tap flow",

@@ -15,10 +15,11 @@
 
 from neutron.agent.common import config
 #from neutron.conf.agent import common
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
-from neutron_taas.common import constants as taas_consts
-import sriov_nic_utils as sriov_utils
+from neutron_taas.services.taas.drivers.linux import sriov_nic_utils \
+    as sriov_utils
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -92,7 +93,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         source_port = tap_flow['port']
         ts_port = tap_flow['tap_service_port']
         direction = tap_flow['tap_flow']['direction']
-        vlan_mirror = tap_flow['vlan_mirror']
+        vlan_mirror = tap_flow['tap_flow']['vlan_mirror']
         vf_to_vf_all_vlans = False
 
         LOG.info("SRIOV Driver: Inside create_tap_flow: "
@@ -215,7 +216,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
     def delete_tap_flow(self, tap_flow):
         source_port = tap_flow['port']
         ts_port = tap_flow['tap_service_port']
-        vlan_mirror = tap_flow['vlan_mirror']
+        vlan_mirror = tap_flow['tap_flow']['vlan_mirror']
         direction = tap_flow['tap_flow']['direction']
 
         LOG.info("SRIOV Driver: Inside delete_tap_flow: "
@@ -259,7 +260,6 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         # If no VLAN filter configured on probe port, then include all vlans
         if not vlan_mirror:
-            vlan_mirror = taas_consts.VLAN_RANGE
             vf_to_vf_all_vlans = True
             LOG.info("VF to VF mirroring for all VLANs. "
                      "Direction %(direction)s",
@@ -287,9 +287,12 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         src_vlans_list = sorted(set(src_vlans_list))
 
-        vlan_mirror_list = sorted(set(
-            self.sriov_utils.get_list_from_ranges_str(
-                vlan_mirror)))
+        vlan_mirror_list = []
+        for vlan_mirror_str in tap_flow['vlan_mirror_list']:
+            vlan_mirror_list.extend(self.sriov_utils.get_list_from_ranges_str(
+                vlan_mirror_str))
+
+        vlan_mirror_list = sorted(set(vlan_mirror_list))
 
         common_vlans_list = \
             list(set(src_vlans_list).intersection(vlan_mirror_list))
