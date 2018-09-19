@@ -211,7 +211,7 @@ class SriovNicUtils(object):
         VIRTFN_RE = re.compile("virtfn(\d+)")
         virtfns_path = "/sys/bus/pci/devices/%s/physfn/virtfn*" % (pci_addr)
         vf_num = None
-        LOG.info("TaaS: get_vf_num_by_pci_address pci_addr: %(pci_addr)s "
+        LOG.info("TaaS: pci_addr: %(pci_addr)s "
                  "virtfns_path: %(virtfns_path)s",
                  {'pci_addr': pci_addr,
                  'virtfns_path': virtfns_path})
@@ -244,7 +244,7 @@ class SriovNicUtils(object):
         In the libvirt parser information tree, the network device stores the
         network capabilities associated to this device.
         """
-        LOG.info("TaaS: get_net_name_by_vf_pci_address vfaddr: %(vfaddr)s ",
+        LOG.info("TaaS: vfaddr: %(vfaddr)s ",
                  {'vfaddr': vfaddress})
         try:
             mac = self.get_mac_by_pci_address(vfaddress,
@@ -331,39 +331,32 @@ class SriovNicUtils(object):
         """Returns a dict of common SRIOV parameters for a given SRIOV port
 
         """
-        LOG.info("TaaS: Inside get_sriov_port_params, sriov_port %(id)s; ",
+        LOG.info("TaaS: sriov_port %(id)s; ",
                  {'id': sriov_port['id']})
 
         port_mac = sriov_port['mac_address']
-
-        LOG.info("TaaS: Inside get_sriov_port_params, port_mac %(port_mac)s; ",
-                 {'port_mac': port_mac})
 
         pci_slot = None
         vlan_mirror = None
         src_vlans = None
         guest_vlans = None
 
-        LOG.info("TaaS: 2, port_mac %(port_mac)s; ",
-                 {'port_mac': port_mac})
-
         if sriov_port.get(portbindings.PROFILE):
             pci_slot = sriov_port[portbindings.PROFILE].get('pci_slot')
             vlan_mirror = sriov_port[portbindings.PROFILE].get('vlan_mirror')
             guest_vlans = sriov_port[portbindings.PROFILE].get('guest_vlans')
 
-        LOG.info("TaaS: pci_slot %(pci_slot)s; "
-                 "vlan_mirror %(vlan_mirror)s; "
-                 "guest_vlans %(guest_vlans)s; ",
-                 {'pci_slot': pci_slot,
-                  'vlan_mirror': vlan_mirror,
-                  'guest_vlans': guest_vlans})
-
         if sriov_port.get(portbindings.VIF_DETAILS):
             src_vlans = sriov_port[portbindings.VIF_DETAILS].get('vlan')
 
-        LOG.info("TaaS: src_vlans %(src_vlans)s; ",
-                 {'src_vlans': src_vlans})
+        LOG.info("TaaS: pci_slot %(pci_slot)s; "
+                 "vlan_mirror %(vlan_mirror)s; "
+                 "guest_vlans %(guest_vlans)s; "
+                 "src_vlans %(src_vlans)s; ",
+                 {'pci_slot': pci_slot,
+                  'vlan_mirror': vlan_mirror,
+                  'guest_vlans': guest_vlans,
+                  'src_vlans': src_vlans})
 
         if src_vlans == '0':
             src_vlans = guest_vlans
@@ -373,14 +366,8 @@ class SriovNicUtils(object):
                       {'id': sriov_port['id'], 'mac': port_mac})
             return
 
-        LOG.info("TaaS: before calling pci_lib routines")
-
         vf_index = self.get_vf_num_by_pci_address(pci_slot)
 
-        LOG.info("TaaS: vf_index %(vf_index)s; ",
-                 {'vf_index': vf_index})
-
-        #pf_device = self.get_net_name_by_vf_pci_address(pci_slot, True)
         pf_device = self.get_ifname_by_pci_address(pci_slot, True)
 
         LOG.info("TaaS: pf_device %(pf_device)s; ",

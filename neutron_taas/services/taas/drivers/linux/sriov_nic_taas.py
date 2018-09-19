@@ -15,10 +15,11 @@
 
 from neutron.agent.common import config
 #from neutron.conf.agent import common
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
-from neutron_taas.common import constants as taas_consts
-import sriov_nic_utils as sriov_utils
+from neutron_taas.services.taas.drivers.linux import sriov_nic_utils \
+    as sriov_utils
 
 from oslo_config import cfg
 from oslo_log import log as logging
