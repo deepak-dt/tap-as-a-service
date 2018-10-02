@@ -82,7 +82,7 @@ class SriovNicUtils(object):
                     '/sys/class/net/' + ts_port_params['pf_device'] + \
                     '/device/sriov/' + src_port_params['vf_index'] + \
                     '/egress_mirror/'
-                commit_cmd = ['/opt/i40e_sysfs_command',
+                commit_cmd = ['i40e_sysfs_command',
                               command,
                               ts_port_params['vf_index'],
                               sysfs_kobject_path]
@@ -108,7 +108,7 @@ class SriovNicUtils(object):
                     '/sys/class/net/' + ts_port_params['pf_device'] + \
                     '/device/sriov/' + src_port_params['vf_index'] + \
                     '/ingress_mirror/'
-                commit_cmd = ['/opt/i40e_sysfs_command',
+                commit_cmd = ['i40e_sysfs_command',
                               command,
                               ts_port_params['vf_index'],
                               sysfs_kobject_path]
@@ -138,7 +138,7 @@ class SriovNicUtils(object):
                                  '/device/sriov/' + \
                                  ts_port_params['vf_index'] + '/vlan_mirror'
 
-            commit_cmd = ['/opt/i40e_sysfs_command',
+            commit_cmd = ['i40e_sysfs_command',
                           command,
                           common_vlans_ranges_str,
                           sysfs_kobject_path]
