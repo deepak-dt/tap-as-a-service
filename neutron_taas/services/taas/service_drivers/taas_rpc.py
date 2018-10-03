@@ -165,40 +165,43 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         ts_port = self.service_plugin._get_port_details(
             context._plugin_context, ts['port_id'])
 
-        # Get all the tap Flows that are associated with the Tap service
-        active_tfs = self.service_plugin.get_tap_flows(
-            context._plugin_context,
-            filters={'tap_service_id': [tf['tap_service_id']],
-                     'status': [constants.ACTIVE]},
-            fields=['source_port'])
-
         src_vlans_list = []
         vlan_mirror_list = []
 
-        for tap_flow in active_tfs:
-            source_port = self.service_plugin._get_port_details(
-                context._plugin_context, tap_flow['source_port'])
+        if port.get(portbindings.VNIC_TYPE) == portbindings.VNIC_DIRECT:
+            # Get all the tap Flows that are associated with the Tap service
+            active_tfs = self.service_plugin.get_tap_flows(
+                context._plugin_context,
+                filters={'tap_service_id': [tf['tap_service_id']],
+                         'status': [constants.ACTIVE]},
+                fields=['source_port', 'vlan_mirror'])
 
-            LOG.debug("taas: active TF's source_port %(source_port)s",
-                      {'source_port': source_port})
+            for tap_flow in active_tfs:
+                source_port = self.service_plugin._get_port_details(
+                    context._plugin_context, tap_flow['source_port'])
 
-            if source_port.get(portbindings.VIF_DETAILS):
-                src_vlans = source_port[portbindings.VIF_DETAILS].get('vlan')
+                LOG.debug("taas: active TF's source_port %(source_port)s",
+                          {'source_port': source_port})
 
-            # If no VLAN filter configured on source port,
-            # then include all vlans
-            if not src_vlans:
-                src_vlans = taas_consts.VLAN_RANGE
+                src_vlans = ""
+                if source_port.get(portbindings.VIF_DETAILS):
+                    src_vlans = \
+                        source_port[portbindings.VIF_DETAILS].get('vlan')
 
-            src_vlans_list.append(src_vlans)
+                # If no VLAN filter configured on source port,
+                # then include all vlans
+                if not src_vlans:
+                    src_vlans = taas_consts.VLAN_RANGE
 
-            vlan_mirror = tap_flow.vlan_mirror
-            # If no VLAN mirror configured for tap-flow,
-            # then include all vlans
-            if not vlan_mirror:
-                vlan_mirror = taas_consts.VLAN_RANGE
+                src_vlans_list.append(src_vlans)
 
-            vlan_mirror_list.append(vlan_mirror)
+                vlan_mirror = tap_flow['vlan_mirror']
+                # If no VLAN mirror configured for tap-flow,
+                # then include all vlans
+                if not vlan_mirror:
+                    vlan_mirror = taas_consts.VLAN_RANGE
+
+                vlan_mirror_list.append(vlan_mirror)
 
         # Send RPC message to both the source port host and
         # tap service(destination) port host
