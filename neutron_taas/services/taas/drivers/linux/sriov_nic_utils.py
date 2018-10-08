@@ -259,40 +259,6 @@ class SriovNicUtils(object):
                         {'vfaddress': vfaddress})
             return
 
-    def merge_ranges(self, ranges):
-        """Merge overlapping and adjacent ranges
-
-        Merge and yield the merged ranges in order. The argument must be an
-        iterable of pairs (start, stop).
-
-        list(merge_ranges([(5,7), (3,5), (-1,3)]))
-        [(-1, 7)]
-
-        list(merge_ranges([(5,6), (3,4), (1,2)]))
-        [(1, 2), (3, 4), (5, 6)]
-
-        list(merge_ranges([(5,6), (3,4), (1,2)]))
-        [(1, 6)]
-
-        list(merge_ranges([(5,6), (3,4), (1,2), (10,20), (1,8)]))
-        [(1, 8), (10, 20)]
-
-        list(merge_ranges([(5,6), (3,4), (1,2), (10,20), (1,8), (9,10)]))
-        [(1, 20)]
-        """
-        ranges = iter(sorted(ranges))
-        current_start, current_stop = next(ranges)
-        for start, stop in ranges:
-            if start > (current_stop + 1):
-                # Gap between segments: output current segment and start
-                # a new one.
-                yield current_start, current_stop
-                current_start, current_stop = start, stop
-            else:
-                # Segments adjacent or overlapping: merge.
-                current_stop = max(current_stop, stop)
-        yield current_start, current_stop
-
     def get_list_from_ranges_str(self, ranges_str):
         """Convert the range in string format to ranges list
 
@@ -336,14 +302,8 @@ class SriovNicUtils(object):
 
         port_mac = sriov_port['mac_address']
 
-        LOG.info("TaaS: Inside get_sriov_port_params, port_mac %(port_mac)s; ",
-                 {'port_mac': port_mac})
-
         pci_slot = None
         src_vlans = None
-
-        LOG.info("TaaS: 2, port_mac %(port_mac)s; ",
-                 {'port_mac': port_mac})
 
         if sriov_port.get(portbindings.PROFILE):
             pci_slot = sriov_port[portbindings.PROFILE].get('pci_slot')
@@ -361,17 +321,9 @@ class SriovNicUtils(object):
                       {'id': sriov_port['id'], 'mac': port_mac})
             return
 
-        LOG.info("TaaS: before calling pci_lib routines")
-
         vf_index = self.get_vf_num_by_pci_address(pci_slot)
 
-        LOG.info("TaaS: vf_index %(vf_index)s; ",
-                 {'vf_index': vf_index})
-
         pf_device = self.get_ifname_by_pci_address(pci_slot, True)
-
-        LOG.info("TaaS: pf_device %(pf_device)s; ",
-                 {'pf_device': pf_device})
 
         return {'mac': port_mac, 'pci_slot': pci_slot,
                 'vf_index': vf_index, 'pf_device': pf_device,

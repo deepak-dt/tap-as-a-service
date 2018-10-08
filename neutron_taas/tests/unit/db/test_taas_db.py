@@ -48,16 +48,16 @@ class TaaSDbTestCase(testlib_api.SqlTestCase):
 
     def _get_tap_flow_data(self, tap_service_id, name='tf-1',
                            direction='BOTH', source_port=None,
-                           vlan_mirror=None):
+                           vlan_filter=None):
         source_port = source_port or _uuid()
-        vlan_mirror = vlan_mirror or taas_consts.VLAN_RANGE
+        vlan_filter = vlan_filter or taas_consts.VLAN_RANGE
         return {"tap_flow": {"name": name,
                              "tenant_id": self.tenant_id,
                              "description": "test tap flow",
                              "tap_service_id": tap_service_id,
                              "source_port": source_port,
                              "direction": direction,
-                             "vlan_mirror": vlan_mirror}}
+                             "vlan_filter": vlan_filter}}
 
     def _get_tap_service(self, tap_service_id):
         """Helper method to retrieve tap service."""

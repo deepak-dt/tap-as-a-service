@@ -49,7 +49,7 @@ class ListTapFlow(extension.ClientExtensionList, TapFlow):
 
     shell_command = 'tap-flow-list'
     list_columns = ['id', 'name', 'source_port', 'tap_service_id', 'status',
-                    'vlan_mirror']
+                    'vlan_filter']
     pagination_support = True
     sorting_support = True
 
@@ -80,9 +80,9 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
             type=utils.convert_to_uppercase,
             help=_('Direction of the Tap flow.'))
         parser.add_argument(
-            '--vlan-mirror',
+            '--vlan-filter',
             required=False,
-            metavar="VLAN_MIRROR",
+            metavar="VLAN_FILTER",
             help=_('VLAN Ids to be mirrored in the form of range string.'))
 
     def args2body(self, parsed_args):
@@ -96,7 +96,7 @@ class CreateTapFlow(extension.ClientExtensionCreate, TapFlow):
         body = {'source_port': source_port,
                 'tap_service_id': tap_service_id}
         neutronv20.update_dict(parsed_args, body, ['tenant_id', 'direction',
-                                                   'vlan_mirror'])
+                                                   'vlan_filter'])
         _updatable_args2body(parsed_args, body)
         return {self.resource: body}
 

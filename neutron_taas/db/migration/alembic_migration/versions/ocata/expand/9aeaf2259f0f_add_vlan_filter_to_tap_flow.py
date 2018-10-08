@@ -1,7 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright (c) 2018 AT&T Corporation
-# All Rights Reserved.
+# Copyright (C) 2018 AT&T
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -15,5 +12,25 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-echo $1 $2 > $3
+"""add_vlan_filter_to_tap_flow
 
+Revision ID: 9aeaf2259f0f
+Revises: fddbdec8711a
+Create Date: 2018-09-18 17:02:41.226135
+
+"""
+
+# revision identifiers, used by Alembic.
+revision = '9aeaf2259f0f'
+down_revision = 'fddbdec8711a'
+
+from alembic import op
+import sqlalchemy as sa
+
+
+TABLE_NAME = 'tap_flows'
+
+
+def upgrade():
+    op.add_column(TABLE_NAME, sa.Column('vlan_filter', sa.String(1024),
+                                        nullable=True))

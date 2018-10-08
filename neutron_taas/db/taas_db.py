@@ -60,7 +60,7 @@ class TapFlow(model_base.BASEV2, model_base.HasId,
                           nullable=False)
     status = sa.Column(sa.String(16), nullable=False,
                        server_default=constants.ACTIVE)
-    vlan_mirror = sa.Column(sa.String(1024), nullable=True)
+    vlan_filter = sa.Column(sa.String(1024), nullable=True)
 
 
 class TapIdAssociation(model_base.BASEV2):
@@ -130,7 +130,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                'source_port': tap_flow['source_port'],
                'direction': tap_flow['direction'],
                'status': tap_flow['status'],
-               'vlan_mirror': tap_flow['vlan_mirror']}
+               'vlan_filter': tap_flow['vlan_filter']}
 
         return self._fields(res, fields)
 
@@ -211,7 +211,7 @@ class Taas_db_Mixin(taas.TaasPluginBase, base_db.CommonDbMixin):
                 source_port=t_f['source_port'],
                 direction=t_f['direction'],
                 status=constants.ACTIVE,
-                vlan_mirror=t_f['vlan_mirror'],
+                vlan_filter=t_f['vlan_filter'],
             )
             context.session.add(tap_flow_db)
 

@@ -29,6 +29,8 @@ from oslo_config import cfg
 
 import six
 
+# Regex for a comma-seperate list of integer values (VLANs)
+# For ex. "9,18,27-36,45-54" or "0-4095" or "9,18,27,36"
 RANGE_REGEX = r"^([0-9]+(-[0-9]+)?)(,([0-9]+(-[0-9]+)?))*$"
 
 # TaaS exception handling classes
@@ -63,11 +65,10 @@ class TapServiceLimitReached(qexception.OverQuota):
 
 
 class SriovNicSwitchDriverInvocationError(qexception.Invalid):
-    message = _("Failed to invoke sys_fs command on driver, with following "
-                "parameters: %(tap_service_pf_device)s, "
-                "%(tap_service_vf_index)s, %(source_vf_index)s, "
-                "%(common_vlans_ranges_str)s, %(vf_to_vf_all_vlans)s, "
-                "%(direction)s")
+    message = _("Failed to invoke SR-IOV TaaS driver command: "
+                "%(tap_service_pf_device)s, %(tap_service_vf_index)s, "
+                "%(source_vf_index)s, %(vlan_filter)s, "
+                "%(vf_to_vf_all_vlans)s, %(direction)s")
 
 
 class PciDeviceNotFoundById(qexception.NotFound):
@@ -133,7 +134,7 @@ RESOURCE_ATTRIBUTE_MAP = {
                       'is_visible': True},
         'status': {'allow_post': False, 'allow_put': False,
                    'is_visible': True},
-        'vlan_mirror': {'allow_post': True, 'allow_put': False,
+        'vlan_filter': {'allow_post': True, 'allow_put': False,
                         'validate': {'type:regex_or_none': RANGE_REGEX},
                         'is_visible': True, 'default': None}
     }

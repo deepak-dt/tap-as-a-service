@@ -166,7 +166,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
             context._plugin_context, ts['port_id'])
 
         src_vlans_list = []
-        vlan_mirror_list = []
+        vlan_filter_list = []
 
         if port.get(portbindings.VNIC_TYPE) == portbindings.VNIC_DIRECT:
             # Get all the tap Flows that are associated with the Tap service
@@ -174,7 +174,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                 context._plugin_context,
                 filters={'tap_service_id': [tf['tap_service_id']],
                          'status': [constants.ACTIVE]},
-                fields=['source_port', 'vlan_mirror'])
+                fields=['source_port', 'vlan_filter'])
 
             for tap_flow in active_tfs:
                 source_port = self.service_plugin._get_port_details(
@@ -195,13 +195,13 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
 
                 src_vlans_list.append(src_vlans)
 
-                vlan_mirror = tap_flow['vlan_mirror']
-                # If no VLAN mirror configured for tap-flow,
+                vlan_filter = tap_flow['vlan_filter']
+                # If no VLAN filter configured for tap-flow,
                 # then include all vlans
-                if not vlan_mirror:
-                    vlan_mirror = taas_consts.VLAN_RANGE
+                if not vlan_filter:
+                    vlan_filter = taas_consts.VLAN_RANGE
 
-                vlan_mirror_list.append(vlan_mirror)
+                vlan_filter_list.append(vlan_filter)
 
         # Send RPC message to both the source port host and
         # tap service(destination) port host
@@ -211,7 +211,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                    'port': port,
                    'tap_service_port': ts_port,
                    'source_vlans_list': src_vlans_list,
-                   'vlan_mirror_list': vlan_mirror_list}
+                   'vlan_filter_list': vlan_filter_list}
 
         self.agent_rpc.delete_tap_flow(context._plugin_context, rpc_msg, host)
         return
