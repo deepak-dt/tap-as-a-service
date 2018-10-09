@@ -113,16 +113,6 @@ class TestSriovNicUtils(base.TaasTestCase):
             output_list.append(v)
         return output_list
 
-    def test_merge_ranges(self):
-        value = sriov_nic_utils.SriovNicUtils().\
-            merge_ranges([(5, 7), (3, 5), (-1, 3)])
-        output = self._common_merge_utility(value)
-        self.assertEqual([(-1, 7)], output)
-        value = sriov_nic_utils.SriovNicUtils().merge_ranges(
-            [(5, 6), (3, 4), (1, 2), (10, 20), (1, 8)])
-        output = self._common_merge_utility(value)
-        self.assertEqual([(1, 8), (10, 20)], output)
-
     def test_get_ranges_str_from_list(self):
         input_list = [4, 11, 12, 13, 25, 26, 27]
         self.assertEqual("4,11-13,25-27", sriov_nic_utils.SriovNicUtils().
@@ -207,7 +197,7 @@ class TestSriovNicUtils(base.TaasTestCase):
         sriov_nic_utils.SriovNicUtils().execute_sysfs_command(
             'add', {'pf_device': 'p2p1', 'vf_index': '0'}, {'vf_index': '0'},
             "4,11-13", True, "OUT")
-        egress_cmd = ['/opt/i40e_sysfs_command', 'add', '0',
+        egress_cmd = ['i40e_sysfs_command', 'add', '0',
                       '/sys/class/net/p2p1/device/sriov/0/egress_mirror/']
         mock_neutron_utils.execute.assert_called_once_with(
             egress_cmd, run_as_root=True)
@@ -231,7 +221,7 @@ class TestSriovNicUtils(base.TaasTestCase):
         sriov_nic_utils.SriovNicUtils().execute_sysfs_command(
             'add', {'pf_device': 'p2p1', 'vf_index': '0'}, {'vf_index': '0'},
             "4,11-13", True, "IN")
-        ingress_cmd = ['/opt/i40e_sysfs_command', 'add', '0',
+        ingress_cmd = ['i40e_sysfs_command', 'add', '0',
                        '/sys/class/net/p2p1/device/sriov/0/ingress_mirror/']
         mock_neutron_utils.execute.assert_called_once_with(
             ingress_cmd, run_as_root=True)
@@ -276,7 +266,7 @@ class TestSriovNicUtils(base.TaasTestCase):
         sriov_nic_utils.SriovNicUtils().execute_sysfs_command(
             'rem', {'pf_device': 'p2p1', 'vf_index': '0'}, {'vf_index': '0'},
             "4,11-13", True, "OUT")
-        egress_cmd = ['/opt/i40e_sysfs_command', 'rem', '0',
+        egress_cmd = ['i40e_sysfs_command', 'rem', '0',
                       '/sys/class/net/p2p1/device/sriov/0/egress_mirror/']
         mock_neutron_utils.execute.assert_called_once_with(
             egress_cmd, run_as_root=True)
@@ -311,7 +301,7 @@ class TestSriovNicUtils(base.TaasTestCase):
         sriov_nic_utils.SriovNicUtils().execute_sysfs_command(
             'rem', {'pf_device': 'p2p1', 'vf_index': '0'}, {'vf_index': '0'},
             "4,11-13", True, "IN")
-        ingress_cmd = ['/opt/i40e_sysfs_command', 'rem', '0',
+        ingress_cmd = ['i40e_sysfs_command', 'rem', '0',
                        '/sys/class/net/p2p1/device/sriov/0/ingress_mirror/']
         mock_neutron_utils.execute.assert_called_once_with(
             ingress_cmd, run_as_root=True)
@@ -364,7 +354,7 @@ class TestSriovNicUtils(base.TaasTestCase):
     def test_execute_sysfs_command_not_both_vf_to_vf_all_vlans_False(
             self, mock_os, mock_neutron_utils):
         mock_os.path.exists.return_value = True
-        cmd = ['/opt/i40e_sysfs_command', 'rem', '4,11-13',
+        cmd = ['i40e_sysfs_command', 'rem', '4,11-13',
                '/sys/class/net/p2p1/device/sriov/0/vlan_mirror']
         sriov_nic_utils.SriovNicUtils().execute_sysfs_command(
             'rem', {'pf_device': 'p2p1', 'vf_index': '0'}, {'vf_index': '0'},

@@ -186,7 +186,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                 src_vlans = ""
                 if source_port.get(portbindings.VIF_DETAILS):
                     src_vlans = \
-                        source_port[portbindings.VIF_DETAILS].get('vlan')
+                        source_port[portbindings.VIF_DETAILS].get('VIF_DETAILS_VLAN')
 
                 # If no VLAN filter configured on source port,
                 # then include all vlans
