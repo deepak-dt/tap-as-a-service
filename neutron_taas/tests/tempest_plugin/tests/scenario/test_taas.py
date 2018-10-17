@@ -1,3 +1,4 @@
+# Copyright (c) 2018 AT&T Corporation
 # Copyright (c) 2015 Midokura SARL
 # All Rights Reserved.
 #
@@ -13,25 +14,216 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_log import log as logging
 from tempest.common import utils
 from tempest import config
 from tempest.lib import decorators
 
+
 from neutron_taas.tests.tempest_plugin.tests.scenario import base
 
 CONF = config.CONF
+LOG = logging.getLogger(__name__)
 
 
 class TestTaaS(base.TaaSScenarioTest):
+    """
+    Config Requirement in tempest.conf:
+    - project_network_cidr_bits- specifies the subnet range for each network
+    - project_network_cidr
+    - public_network_id
+    """
 
     @classmethod
     def resource_setup(cls):
+        LOG.debug("Initializing TaaSScenarioTest Setup")
         super(TestTaaS, cls).resource_setup()
-        for ext in ['taas']:
+        required_exts = ['taas', 'security-group', 'router']
+        for ext in required_exts:
             if not utils.is_extension_enabled(ext, 'network'):
                 msg = "%s Extension not enabled." % ext
                 raise cls.skipException(msg)
+        LOG.debug("TaaSScenarioTest Setup done.")
+
+    def _create_server(self, network, security_group=None):
+        keys = self.create_keypair()
+        kwargs = {}
+        if security_group is not None:
+            kwargs['security_groups'] = [{'name': security_group['name']}]
+        server = self.create_server(
+            key_name=keys['name'],
+            networks=[{'uuid': network['id']}],
+            wait_until='ACTIVE',
+            **kwargs)
+        return server, keys
+
+    def _create_test_server(self, network, security_group):
+        pub_network_id = CONF.network.public_network_id
+        server, keys = self._create_server(
+            network, security_group=security_group)
+        private_key = keys['private_key']
+        server_floating_ip = self.create_floating_ip(server, pub_network_id)
+        fixed_ip = list(server['addresses'].values())[0][0]['addr']
+        return server, private_key, fixed_ip, server_floating_ip
+
+    def _check_server_connectivity(self, floating_ip, keys1, address_list,
+                                   should_connect=True):
+        ip_address = floating_ip['floating_ip_address']
+        private_key = keys1
+        ssh_source = self.get_remote_client(
+            ip_address, private_key=private_key)
+
+        for remote_ip in address_list:
+            if should_connect:
+                msg = ("Timed out waiting for %s to become "
+                       "reachable") % remote_ip
+            else:
+                msg = "ip address %s is reachable" % remote_ip
+            try:
+                self.assertTrue(self._check_remote_connectivity
+                                (ssh_source, remote_ip, should_connect),
+                                msg)
+            except Exception:
+                LOG.exception("Unable to access {dest} via ssh to "
+                              "floating-ip {src}".format(dest=remote_ip,
+                                                         src=floating_ip))
+                raise
+
+    def _create_topology(self):
+        """
+        +----------+             +----------+
+        | "server" |             | "server" |
+        |  VM-1    |             |  VM-2    |
+        |          |             |          |
+        +----+-----+             +----+-----+
+             |                        |
+             |                        |
+        +----+----+----+----+----+----+-----+
+                            |
+                            |
+                            |
+                     +------+------+
+                     | "server"    |
+                     | tap-service |
+                     +-------------+
+        """
+        LOG.debug('Starting Topology Creation')
+        resp = {}
+        # Create Network1 and Subnet1.
+        self.network1, self.subnet1, self.router1 = self.create_networks()
+        resp['network1'] = self.network1
+        resp['subnet1'] = self.subnet1
+        resp['router1'] = self.router1
+
+        # Create a security group allowing icmp and ssh traffic.
+        security_group = self._create_security_group()
+
+        # Create 3 VMs and assign them a floating IP each.
+        server1, private_key1, server_fixed_ip_1, server_floating_ip_1 = (
+            self._create_test_server(self.network1, security_group))
+        server2, private_key2, server_fixed_ip_2, server_floating_ip_2 = (
+            self._create_test_server(self.network1, security_group))
+        server3, private_key3, server_fixed_ip_3, server_floating_ip_3 = (
+            self._create_test_server(self.network1, security_group))
+
+        # Store the received information to be used later
+        resp['server1'] = server1
+        resp['private_key1'] = private_key1
+        resp['server_fixed_ip_1'] = server_fixed_ip_1
+        resp['server_floating_ip_1'] = server_floating_ip_1
+
+        resp['server2'] = server2
+        resp['private_key2'] = private_key2
+        resp['server_fixed_ip_2'] = server_fixed_ip_2
+        resp['server_floating_ip_2'] = server_floating_ip_2
+
+        resp['server3'] = server3
+        resp['private_key3'] = private_key3
+        resp['server_fixed_ip_3'] = server_fixed_ip_3
+        resp['server_floating_ip_3'] = server_floating_ip_3
+
+        return resp
 
     @decorators.idempotent_id('40903cbd-0e3c-464d-b311-dc77d3894e65')
-    def test_dummy(self):
-        pass
+    def test_tap_flow_data_mirroring(self):
+        topology = self._create_topology()
+
+        ssh_login = CONF.validation.image_ssh_user
+
+        self.check_vm_connectivity(
+            ip_address=topology['server_floating_ip_1']['floating_ip_address'],
+            username=ssh_login,
+            private_key=topology['private_key1'])
+        self.check_vm_connectivity(
+            ip_address=topology['server_floating_ip_2']['floating_ip_address'],
+            username=ssh_login,
+            private_key=topology['private_key2'])
+
+        # Check the connectivity between VM1 and VM2. It should Pass.
+        self._check_server_connectivity(
+            topology['server_floating_ip_1'],
+            topology['private_key1'],
+            address_list=[topology['server_fixed_ip_2']],
+            should_connect=True)
+
+        # Check the connectivity between VM1 and VM3. It should Pass.
+        self._check_server_connectivity(
+            topology['server_floating_ip_1'],
+            topology['private_key1'],
+            address_list=[topology['server_fixed_ip_3']],
+            should_connect=True)
+
+        # Fetch source port and tap-service port to be used for creating
+        # Tap Service and Tap flow.
+        source_port = self.os_admin.ports_client.list_ports(
+            network_id=topology['network1']['id'],
+            device_id=topology['server1']['id']
+            )['ports'][0]
+
+        tap_service_port = self.os_admin.ports_client.list_ports(
+            network_id=topology['network1']['id'],
+            device_id=topology['server3']['id']
+            )['ports'][0]
+
+        # Create Tap-Service.
+        tap_service = self.create_tap_service(port_id=tap_service_port['id'])
+
+        # Create Tap-Flow.
+        self.create_tap_flow(tap_service_id=tap_service['id'],
+                             direction='BOTH', source_port=source_port['id'],
+                             vlan_filter='189,279,999-1008')
+
+        # Fetch ssh client for tap-service VM, i.e. VM3.
+        ts_ssh_client = self.get_remote_client(
+            topology['server_floating_ip_3']['floating_ip_address'],
+            username=ssh_login,
+            private_key=topology['private_key3'])
+
+        # Fetch ssh client for source VM, i.e. VM1.
+        server1_ssh_client = self.get_remote_client(
+            topology['server_floating_ip_1']['floating_ip_address'],
+            username=ssh_login,
+            private_key=topology['private_key1'])
+
+        # "netstat -ie | grep -B1 %s | head -n1 | awk '{print $1}'" %
+        intf = ts_ssh_client.exec_command(
+            "ifconfig | grep -B1 %s | head -n1 | awk '{print $1}'" %
+            topology['server_fixed_ip_3'])
+
+        # Start packet capture on the tap-service VM to a file.
+        ts_ssh_client.exec_command(
+            "sudo timeout 36 tcpdump -l -U -i %s icmp -w /tmp/capture.pcap" %
+            intf)
+
+        # Ping VM2 from VM1. Packets from VM1 port (source port) should get
+        # mirrored to tap-service port, i.e. VM3 port
+        server1_ssh_client.exec_command("ping %s -c 9" %
+                                        topology['server_fixed_ip_2'])
+
+        # Get the icmp packets count mirrored to tap-service port
+        packet_count = ts_ssh_client.exec_command(
+            "sudo tcpdump -r /tmp/capture.pcap -A icmp | wc -l")
+
+        msg = "No mirrored packets received...."
+        self.assertTrue(packet_count > 0, msg)
+

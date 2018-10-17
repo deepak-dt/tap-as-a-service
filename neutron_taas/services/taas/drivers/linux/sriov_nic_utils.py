@@ -309,8 +309,7 @@ class SriovNicUtils(object):
             pci_slot = sriov_port[portbindings.PROFILE].get('pci_slot')
 
         if sriov_port.get(portbindings.VIF_DETAILS):
-            src_vlans = sriov_port[portbindings.VIF_DETAILS].get(
-                portbindings.VIF_DETAILS_VLAN)
+            src_vlans = sriov_port[portbindings.VIF_DETAILS].get('vlan')
 
         LOG.info("TaaS: pci_slot %(pci_slot)s; "
                  "src_vlans %(src_vlans)s; ",
