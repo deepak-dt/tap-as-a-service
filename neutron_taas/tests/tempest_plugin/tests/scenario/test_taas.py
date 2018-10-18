@@ -188,10 +188,19 @@ class TestTaaS(base.TaaSScenarioTest):
         # Create Tap-Service.
         tap_service = self.create_tap_service(port_id=tap_service_port['id'])
 
+        LOG.debug('TaaS Config options: sriov_vlans: %s, vlan-filter: %s' %
+                  (CONF.taas_plugin_options.sriov_vlans,
+                   CONF.taas_plugin_options.vlan_filter))
+
         # Create Tap-Flow.
+        vnic_type = CONF.network.port_vnic_type
+        vlan_filter = None
+        if vnic_type == 'direct':
+            vlan_filter = CONF.taas_plugin_options.sriov_vlan
+
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=source_port['id'],
-                             vlan_filter='189,279,999-1008')
+                             vlan_filter=vlan_filter)
 
         # Fetch ssh client for tap-service VM, i.e. VM3.
         ts_ssh_client = self.get_remote_client(
