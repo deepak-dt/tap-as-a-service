@@ -27,11 +27,11 @@ LOG = logging.getLogger(__name__)
 
 
 class TestTaaS(base.TaaSScenarioTest):
-    """
-    Config Requirement in tempest.conf:
+    """Config Requirement in tempest.conf:
+
     - project_network_cidr_bits- specifies the subnet range for each network
     - project_network_cidr
-    - public_network_id
+    - public_network_id.
     """
 
     @classmethod
@@ -62,35 +62,17 @@ class TestTaaS(base.TaaSScenarioTest):
         server, keys = self._create_server(
             network, security_group=security_group)
         private_key = keys['private_key']
-        server_floating_ip = self.create_floating_ip(server, pub_network_id)
+        vnic_type = CONF.network.port_vnic_type
+        server_floating_ip = None
+        if vnic_type != 'direct':
+            server_floating_ip = self.create_floating_ip(server,
+                                                         pub_network_id)
         fixed_ip = list(server['addresses'].values())[0][0]['addr']
         return server, private_key, fixed_ip, server_floating_ip
 
-    def _check_server_connectivity(self, floating_ip, keys1, address_list,
-                                   should_connect=True):
-        ip_address = floating_ip['floating_ip_address']
-        private_key = keys1
-        ssh_source = self.get_remote_client(
-            ip_address, private_key=private_key)
-
-        for remote_ip in address_list:
-            if should_connect:
-                msg = ("Timed out waiting for %s to become "
-                       "reachable") % remote_ip
-            else:
-                msg = "ip address %s is reachable" % remote_ip
-            try:
-                self.assertTrue(self._check_remote_connectivity
-                                (ssh_source, remote_ip, should_connect),
-                                msg)
-            except Exception:
-                LOG.exception("Unable to access {dest} via ssh to "
-                              "floating-ip {src}".format(dest=remote_ip,
-                                                         src=floating_ip))
-                raise
-
     def _create_topology(self):
-        """
+        """Topology
+
         +----------+             +----------+
         | "server" |             | "server" |
         |  VM-1    |             |  VM-2    |
@@ -148,31 +130,6 @@ class TestTaaS(base.TaaSScenarioTest):
     def test_tap_flow_data_mirroring(self):
         topology = self._create_topology()
 
-        ssh_login = CONF.validation.image_ssh_user
-
-        self.check_vm_connectivity(
-            ip_address=topology['server_floating_ip_1']['floating_ip_address'],
-            username=ssh_login,
-            private_key=topology['private_key1'])
-        self.check_vm_connectivity(
-            ip_address=topology['server_floating_ip_2']['floating_ip_address'],
-            username=ssh_login,
-            private_key=topology['private_key2'])
-
-        # Check the connectivity between VM1 and VM2. It should Pass.
-        self._check_server_connectivity(
-            topology['server_floating_ip_1'],
-            topology['private_key1'],
-            address_list=[topology['server_fixed_ip_2']],
-            should_connect=True)
-
-        # Check the connectivity between VM1 and VM3. It should Pass.
-        self._check_server_connectivity(
-            topology['server_floating_ip_1'],
-            topology['private_key1'],
-            address_list=[topology['server_fixed_ip_3']],
-            should_connect=True)
-
         # Fetch source port and tap-service port to be used for creating
         # Tap Service and Tap flow.
         source_port = self.os_admin.ports_client.list_ports(
@@ -188,51 +145,15 @@ class TestTaaS(base.TaaSScenarioTest):
         # Create Tap-Service.
         tap_service = self.create_tap_service(port_id=tap_service_port['id'])
 
-        LOG.debug('TaaS Config options: sriov_vlans: %s, vlan-filter: %s' %
-                  (CONF.taas_plugin_options.sriov_vlans,
-                   CONF.taas_plugin_options.vlan_filter))
+        LOG.debug('TaaS Config options: vlan-filter: %s' %
+                  CONF.taas_plugin_options.vlan_filter)
 
         # Create Tap-Flow.
         vnic_type = CONF.network.port_vnic_type
         vlan_filter = None
         if vnic_type == 'direct':
-            vlan_filter = CONF.taas_plugin_options.sriov_vlan
+            vlan_filter = CONF.taas_plugin_options.vlan_filter
 
         self.create_tap_flow(tap_service_id=tap_service['id'],
                              direction='BOTH', source_port=source_port['id'],
                              vlan_filter=vlan_filter)
-
-        # Fetch ssh client for tap-service VM, i.e. VM3.
-        ts_ssh_client = self.get_remote_client(
-            topology['server_floating_ip_3']['floating_ip_address'],
-            username=ssh_login,
-            private_key=topology['private_key3'])
-
-        # Fetch ssh client for source VM, i.e. VM1.
-        server1_ssh_client = self.get_remote_client(
-            topology['server_floating_ip_1']['floating_ip_address'],
-            username=ssh_login,
-            private_key=topology['private_key1'])
-
-        # "netstat -ie | grep -B1 %s | head -n1 | awk '{print $1}'" %
-        intf = ts_ssh_client.exec_command(
-            "ifconfig | grep -B1 %s | head -n1 | awk '{print $1}'" %
-            topology['server_fixed_ip_3'])
-
-        # Start packet capture on the tap-service VM to a file.
-        ts_ssh_client.exec_command(
-            "sudo timeout 36 tcpdump -l -U -i %s icmp -w /tmp/capture.pcap" %
-            intf)
-
-        # Ping VM2 from VM1. Packets from VM1 port (source port) should get
-        # mirrored to tap-service port, i.e. VM3 port
-        server1_ssh_client.exec_command("ping %s -c 9" %
-                                        topology['server_fixed_ip_2'])
-
-        # Get the icmp packets count mirrored to tap-service port
-        packet_count = ts_ssh_client.exec_command(
-            "sudo tcpdump -r /tmp/capture.pcap -A icmp | wc -l")
-
-        msg = "No mirrored packets received...."
-        self.assertTrue(packet_count > 0, msg)
-

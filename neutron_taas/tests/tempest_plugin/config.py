@@ -24,11 +24,8 @@ TaasPluginOptGroup = cfg.OptGroup(name='taas_plugin_options',
                                   title='TaaS Tempest Plugin Config')
 
 TaaSPluginOptions = [
-    cfg.ListOpt('sriov_vlans',
-                default=[],
-                help='List of VLANs to be configured for sriov network.'),
-    cfg.ListOpt('vlan_filter',
-                default=[],
-                help='List of VLANs to be mirrored for a Tap-Flow.'),
+    cfg.StrOpt('vlan_filter',
+               default=[],
+               help='List of VLANs to be mirrored for a Tap-Flow.'),
 ]
 
