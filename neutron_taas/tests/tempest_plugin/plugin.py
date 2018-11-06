@@ -23,8 +23,8 @@ from neutron_taas.tests.tempest_plugin import config as project_config
 
 class NeutronTaaSPlugin(plugins.TempestPlugin):
     def get_opt_lists(self):
-        return [(project_config.TaasPluginOptGroup.name,
-                 project_config.TaaSPluginOptions)]
+        return [(project_config.taas_plugin_group.name,
+                 project_config.TaaSPluginGroup)]
 
     def load_tests(self):
         this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +37,6 @@ class NeutronTaaSPlugin(plugins.TempestPlugin):
         return (test_dir, top_level_dir)
 
     def register_opts(self, conf):
-        conf.register_group(project_config.TaasPluginOptGroup)
-        conf.register_opts(project_config.TaaSPluginOptions,
-                           project_config.TaasPluginOptGroup)
+        conf.register_group(project_config.taas_plugin_group)
+        conf.register_opts(project_config.TaaSPluginGroup,
+                           project_config.taas_plugin_group)

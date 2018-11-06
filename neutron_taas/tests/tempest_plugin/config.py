@@ -20,12 +20,19 @@ from tempest import config
 CONF = config.CONF
 
 
-TaasPluginOptGroup = cfg.OptGroup(name='taas_plugin_options',
-                                  title='TaaS Tempest Plugin Config')
+taas_plugin_group = cfg.OptGroup(name='taas_plugin_options',
+                                 title='TaaS Tempest Plugin Options')
 
-TaaSPluginOptions = [
+TaaSPluginGroup = [
+    cfg.StrOpt('provider_physical_network',
+               default=[],
+               help='Physical network to be used for creating SRIOV network.'),
+    cfg.StrOpt('provider_segmentation_id',
+               default=[],
+               help='Segmentation-id to be used for creating SRIOV network.'),
     cfg.StrOpt('vlan_filter',
                default=[],
-               help='List of VLANs to be mirrored for a Tap-Flow.'),
+               help='Comma separated list of VLANs to be mirrored '
+                    'for a Tap-Flow.'),
 ]
 
