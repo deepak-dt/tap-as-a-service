@@ -35,4 +35,3 @@ TaaSPluginGroup = [
                help='Comma separated list of VLANs to be mirrored '
                     'for a Tap-Flow.'),
 ]
-

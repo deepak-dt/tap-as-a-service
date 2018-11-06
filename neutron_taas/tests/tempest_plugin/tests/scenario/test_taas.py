@@ -17,10 +17,10 @@
 from oslo_log import log as logging
 from tempest.common import utils
 from tempest import config
-from tempest.lib import decorators
-from tempest.lib import exceptions as lib_exc
 from tempest.lib.common.utils import data_utils
 from tempest.lib.common.utils import test_utils
+from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 import testtools
 
 from neutron_taas.tests.tempest_plugin.tests.scenario import base
