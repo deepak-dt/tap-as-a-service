@@ -131,7 +131,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                   'src_vlans': ts_port_params['src_vlans']})
 
         # If no VLAN filter configured on source port, then include all vlans
-        if not src_port_params['src_vlans']:
+        if not src_port_params['src_vlans'] or src_port_params['src_vlans'] == '0':
             src_port_params['src_vlans'] = taas_consts.VLAN_RANGE
             LOG.info("TaaS no src_vlans in src_port")
 

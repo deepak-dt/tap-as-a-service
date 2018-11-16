@@ -190,7 +190,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
 
                 # If no VLAN filter configured on source port,
                 # then include all vlans
-                if not src_vlans:
+                if not src_vlans or src_vlans == '0':
                     src_vlans = taas_consts.VLAN_RANGE
 
                 src_vlans_list.append(src_vlans)
