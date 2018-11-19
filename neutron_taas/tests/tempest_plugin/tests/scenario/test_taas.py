@@ -1,4 +1,4 @@
-# Copyright (c) 2018 AT&T Corporation
+# Copyright (c) 2018 AT&T Intellectual Property. All other rights reserved.
 # Copyright (c) 2015 Midokura SARL
 # All Rights Reserved.
 #
@@ -29,6 +29,7 @@ CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 
+# pylint: disable=too-many-ancestors
 class TestTaaS(base.TaaSScenarioTest):
     """Config Requirement in tempest.conf:
 
@@ -150,8 +151,8 @@ class TestTaaS(base.TaaSScenarioTest):
             # test account mgmt is reworked:
             # https://blueprints.launchpad.net/tempest/+spec/test-accounts
             if not CONF.compute.fixed_network_name:
-                m = 'fixed_network_name must be specified in config'
-                raise lib_exc.InvalidConfiguration(m)
+                msg = 'fixed_network_name must be specified in config'
+                raise lib_exc.InvalidConfiguration(msg)
             network = self._get_network_by_name(
                 CONF.compute.fixed_network_name)
             subnet = None
@@ -257,7 +258,7 @@ class TestTaaS(base.TaaSScenarioTest):
         # Create Tap-Service.
         tap_service = self.create_tap_service(port_id=tap_service_port['id'])
 
-        LOG.debug('TaaS Config options: vlan-filter: %s' %
+        LOG.debug('TaaS Config options: vlan-filter: %s',
                   CONF.taas_plugin_options.vlan_filter)
 
         # Create Tap-Flow.

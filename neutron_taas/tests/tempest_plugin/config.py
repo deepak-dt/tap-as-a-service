@@ -25,13 +25,13 @@ taas_plugin_group = cfg.OptGroup(name='taas_plugin_options',
 
 TaaSPluginGroup = [
     cfg.StrOpt('provider_physical_network',
-               default=[],
+               default='',
                help='Physical network to be used for creating SRIOV network.'),
     cfg.StrOpt('provider_segmentation_id',
-               default=[],
+               default='',
                help='Segmentation-id to be used for creating SRIOV network.'),
     cfg.StrOpt('vlan_filter',
-               default=[],
+               default='',
                help='Comma separated list of VLANs to be mirrored '
                     'for a Tap-Flow.'),
 ]
