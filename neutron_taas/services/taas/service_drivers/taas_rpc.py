@@ -136,6 +136,44 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
         ts_port = self.service_plugin._get_port_details(
             context._plugin_context, ts['port_id'])
 
+        # Check if same VLAN is being used already in some other tap flow
+        if port.get(portbindings.VNIC_TYPE) == portbindings.VNIC_DIRECT:
+            # Get all the active tap flows
+            active_tfs = self.service_plugin.get_tap_flows(
+                context._plugin_context,
+                filters={'status': [constants.ACTIVE]},
+                fields=['source_port', 'tap_service_id', 'vlan_filter'])
+
+            # Filter out the tap flows associated with distinct tap services
+            tap_flow_iter = (tap_flow for tap_flow in active_tfs
+                             if (tap_flow['tap_service_id'] != tf['tap_service_id']))
+
+            for tf_existing in tap_flow_iter:
+                src_port_existing = self.service_plugin._get_port_details(
+                    context._plugin_context, tf_existing['source_port'])
+
+                ts_existing = self.service_plugin.get_tap_service(
+                    context._plugin_context, tf_existing['tap_service_id'])
+
+                dest_port_existing = self.service_plugin._get_port_details(
+                    context._plugin_context, ts_existing['port_id'])
+
+                if (src_port_existing['binding:host_id'] != host) or \
+                        (dest_port_existing['binding:host_id'] != ts_port['binding:host_id']):
+                    continue
+
+                vlan_filter_list_iter = sorted(
+                    set(self.sriov_utils.get_list_from_ranges_str(
+                        tf_existing['vlan_filter'])))
+                vlan_filter_list_curr = sorted(
+                    set(self.sriov_utils.get_list_from_ranges_str(
+                        tf['vlan_filter'])))
+
+                if (list(set(vlan_filter_iter_list).intersection(
+                        vlan_filter_curr_list)) != []):
+                    LOG.debug("taas: active TF's source_port %(source_port)s",
+                              {'source_port': src_port_existing})
+
         # Send RPC message to both the source port host and
         # tap service(destination) port host
         rpc_msg = {'tap_flow': tf,
