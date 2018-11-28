@@ -16,6 +16,7 @@
 from neutron.agent.common import config
 #from neutron.conf.agent import common
 from neutron_taas.common import constants as taas_consts
+from neutron_taas.common import utils as common_utils
 from neutron_taas.extensions import taas
 from neutron_taas.services.taas.agents.extensions import taas as taas_base
 from neutron_taas.services.taas.drivers.linux import sriov_nic_utils \
@@ -171,15 +172,14 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             return
 
         # Fetch common VLAN tags
-        src_vlans_list = sorted(set(self.sriov_utils.get_list_from_ranges_str(
+        src_vlans_list = sorted(set(common_utils.get_list_from_ranges_str(
             src_port_params['src_vlans'])))
         vlan_filter_list = sorted(set(
-            self.sriov_utils.get_list_from_ranges_str(
-                vlan_filter)))
+            common_utils.get_list_from_ranges_str(vlan_filter)))
 
         common_vlans_list = list(set(src_vlans_list).intersection(
             vlan_filter_list))
-        common_vlans_ranges_str = self.sriov_utils.get_ranges_str_from_list(
+        common_vlans_ranges_str = common_utils.get_ranges_str_from_list(
             common_vlans_list)
 
         LOG.info("TaaS src_vlans_list %(src_vlans_list)s, "
@@ -283,14 +283,14 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         # Fetch common VLAN tags
         src_vlans_list = []
         for src_vlans_str in tap_flow['source_vlans_list']:
-            src_vlans_list.extend(self.sriov_utils.get_list_from_ranges_str(
+            src_vlans_list.extend(common_utils.get_list_from_ranges_str(
                 src_vlans_str))
 
         src_vlans_list = sorted(set(src_vlans_list))
 
         vlan_filter_list = []
         for vlan_filter_str in tap_flow['vlan_filter_list']:
-            vlan_filter_list.extend(self.sriov_utils.get_list_from_ranges_str(
+            vlan_filter_list.extend(common_utils.get_list_from_ranges_str(
                 vlan_filter_str))
 
         vlan_filter_list = sorted(set(vlan_filter_list))
@@ -299,7 +299,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
             list(set(src_vlans_list).intersection(vlan_filter_list))
 
         common_vlans_ranges_str = \
-            self.sriov_utils.get_ranges_str_from_list(common_vlans_list)
+            common_utils.get_ranges_str_from_list(common_vlans_list)
 
         LOG.info("TaaS src_vlans_list %(src_vlans_list)s, "
                  "vlan_filter_list %(vlan_filter_list)s, "

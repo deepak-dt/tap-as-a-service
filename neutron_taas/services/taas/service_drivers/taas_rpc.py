@@ -22,6 +22,7 @@ from neutron_lib import exceptions as n_exc
 
 from neutron_taas.common import constants as taas_consts
 from neutron_taas.common import topics
+from neutron_taas.common import utils as common_utils
 from neutron_taas.services.taas import service_drivers
 from neutron_taas.services.taas.service_drivers import taas_agent_api
 
@@ -145,10 +146,10 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                 fields=['source_port', 'tap_service_id', 'vlan_filter'])
 
             # Filter out the tap flows associated with distinct tap services
-            tap_flow_iter = (tap_flow for tap_flow in active_tfs
-                             if (tap_flow['tap_service_id'] != tf['tap_service_id']))
+            tf_iter = (tflow for tap_flow in active_tfs
+                       if (tflow['tap_service_id'] != tf['tap_service_id']))
 
-            for tf_existing in tap_flow_iter:
+            for tf_existing in tf_iter:
                 src_port_existing = self.service_plugin._get_port_details(
                     context._plugin_context, tf_existing['source_port'])
 
@@ -159,20 +160,27 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
                     context._plugin_context, ts_existing['port_id'])
 
                 if (src_port_existing['binding:host_id'] != host) or \
-                        (dest_port_existing['binding:host_id'] != ts_port['binding:host_id']):
+                        (dest_port_existing['binding:host_id'] != \
+                            ts_port['binding:host_id']):
                     continue
 
                 vlan_filter_list_iter = sorted(
-                    set(self.sriov_utils.get_list_from_ranges_str(
+                    set(common_utils.get_list_from_ranges_str(
                         tf_existing['vlan_filter'])))
                 vlan_filter_list_curr = sorted(
-                    set(self.sriov_utils.get_list_from_ranges_str(
+                    set(common_utils.get_list_from_ranges_str(
                         tf['vlan_filter'])))
 
-                if (list(set(vlan_filter_iter_list).intersection(
-                        vlan_filter_curr_list)) != []):
-                    LOG.debug("taas: active TF's source_port %(source_port)s",
-                              {'source_port': src_port_existing})
+                overlapping_vlans = list(set(
+                    vlan_filter_iter_list).intersection(vlan_filter_curr_list)
+
+                if overlapping_vlans != []):
+                    LOG.error("taas: same VLAN Ids can't associate with"
+                              "multiple tap-services. These VLAN Ids:"
+                              "[%(overlapping_vlans)s] overlap with existing"
+                              "tap-services.",
+                              {'overlapping_vlans': overlapping_vlans})
+                    return
 
         # Send RPC message to both the source port host and
         # tap service(destination) port host
