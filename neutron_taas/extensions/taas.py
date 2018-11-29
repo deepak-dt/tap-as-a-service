@@ -70,8 +70,8 @@ class SriovNicSwitchDriverInvocationError(qexception.Invalid):
                 "%(source_vf_index)s, %(vlan_filter)s, "
                 "%(vf_to_vf_all_vlans)s, %(direction)s")
 
-class SriovVlanConfiguredForAnotherTapService(qexception.NotAuthorized):
-    message = _("VLANs [%(overlapping_vlans)s] in VLAN Fliter configured "
+class SriovVlanConfiguredForAnotherTapService(qexception.BadRequest):
+    message = _("VLANs %(overlapping_vlans)s in VLAN Fliter configured "
                 "already for another Tap Service: %(tap_service_id)s")
 
 

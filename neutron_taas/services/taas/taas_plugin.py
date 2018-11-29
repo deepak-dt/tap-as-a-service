@@ -148,7 +148,9 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
 
         # Check if same VLAN is being used already in some other tap flow
         # Extract the host where the source port is located
-        port = self._get_port_details(context, tf['source_port'])
+        port = self._get_port_details(context, t_f['source_port'])
+
+        ts_port = self._get_port_details(context, ts['port_id'])
 
         if port.get(portbindings.VNIC_TYPE) == portbindings.VNIC_DIRECT:
             # Get all the active tap flows
@@ -158,8 +160,8 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                 fields=['source_port', 'tap_service_id', 'vlan_filter'])
 
             # Filter out the tap flows associated with distinct tap services
-            tf_iter = (tflow for tap_flow in active_tfs
-                       if (tflow['tap_service_id'] != tf['tap_service_id']))
+            tf_iter = (tflow for tflow in active_tfs
+                       if (tflow['tap_service_id'] != t_f['tap_service_id']))
 
             for tf_existing in tf_iter:
                 src_port_existing = self._get_port_details(
@@ -171,9 +173,23 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                 dest_port_existing = self._get_port_details(
                     context, ts_existing['port_id'])
 
-                if (src_port_existing['binding:host_id'] != port['binding:host_id']) or \
-                        (dest_port_existing['binding:host_id'] != \
-                            ts_port['binding:host_id']):
+                LOG.debug("taas: src_port_existing: %(src_port_existing)s "
+                          "port: %(port)s "
+                          "dest_port_existing: %(dest_port_existing)s "
+                          "ts_port: %(ts_port)s ",
+                          {'src_port_existing': src_port_existing['binding:host_id'],
+                           'port': port['binding:host_id'],
+                           'dest_port_existing': dest_port_existing['binding:host_id'],
+                           'ts_port': ts_port['binding:host_id']})
+
+                if (src_port_existing['binding:host_id'] and \
+                    port['binding:host_id'] and \
+                    dest_port_existing['binding:host_id'] and \
+                    ts_port['binding:host_id']) and \
+                    ((src_port_existing['binding:host_id'] != \
+                      port['binding:host_id']) or \
+                          (dest_port_existing['binding:host_id'] != \
+                              ts_port['binding:host_id'])):
                     continue
 
                 vlan_filter_list_iter = sorted(
@@ -181,19 +197,27 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                         tf_existing['vlan_filter'])))
                 vlan_filter_list_curr = sorted(
                     set(common_utils.get_list_from_ranges_str(
-                        tf['vlan_filter'])))
+                        t_f['vlan_filter'])))
 
                 overlapping_vlans = list(set(
-                    vlan_filter_iter_list).intersection(vlan_filter_curr_list)
+                    vlan_filter_list_iter).intersection(vlan_filter_list_curr))
 
-                if overlapping_vlans != []):
-                    LOG.error("taas: same VLAN Ids can't associate with"
-                              "multiple tap-services. These VLAN Ids:"
-                              "[%(overlapping_vlans)s] overlap with existing"
+                LOG.debug("taas: vlan_filter_list_iter: %(vlan_filter_list_iter)s "
+                          "vlan_filter_list_curr: %(vlan_filter_list_curr)s "
+                          "overlapping_vlans: %(overlapping_vlans)s ",
+                          {'vlan_filter_list_iter': vlan_filter_list_iter,
+                           'vlan_filter_list_curr': vlan_filter_list_curr,
+                           'overlapping_vlans': overlapping_vlans})
+
+                if overlapping_vlans:
+                    LOG.error("taas: same VLAN Ids can't associate with "
+                              "multiple tap-services. These VLAN Ids: "
+                              "%(overlapping_vlans)s overlap with existing "
                               "tap-services.",
                               {'overlapping_vlans': overlapping_vlans})
                     raise taas_ex.SriovVlanConfiguredForAnotherTapService(
-                        overlapping_vlans, tf_existing['tap_service_id'])
+                        overlapping_vlans=overlapping_vlans,
+                        tap_service_id=tf_existing['tap_service_id'])
 
         # create tap flow in the db model
         with context.session.begin(subtransactions=True):
