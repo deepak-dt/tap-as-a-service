@@ -37,7 +37,7 @@ class TaasRpcDriver(service_drivers.TaasBaseDriver):
     def __init__(self, service_plugin):
         LOG.debug("Loading TaasRpcDriver.")
         super(TaasRpcDriver, self).__init__(service_plugin)
-        self.endpoints = [taas_agent_api.TaasCallbacks(service_plugin)]
+        self.endpoints = [taas_agent_api.TaasCallbacks(self, service_plugin)]
         self.conn = n_rpc.Connection()
         self.conn.create_consumer(topics.TAAS_PLUGIN,
                                   self.endpoints, fanout=False)

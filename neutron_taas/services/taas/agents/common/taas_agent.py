@@ -17,6 +17,7 @@
 
 from neutron.common import rpc as n_rpc
 from neutron import manager
+from neutron_lib import context as neutron_context
 from neutron_taas.services.taas.drivers.linux \
     import ovs_constants as taas_ovs_consts
 
@@ -25,6 +26,7 @@ from neutron_taas.services.taas.agents import taas_agent_api as api
 
 from oslo_config import cfg
 from oslo_log import log as logging
+import oslo_messaging as messaging
 from oslo_service import service
 
 LOG = logging.getLogger(__name__)
@@ -35,6 +37,20 @@ class TaasPluginApi(api.TaasPluginApiMixin):
 
     def __init__(self, topic, host):
         super(TaasPluginApi, self).__init__(topic, host)
+        target = messaging.Target(topic=topic, version='1.0')
+        self.client = n_rpc.get_client(target)
+        return
+
+    def sync_tap_resources(self, sync_tap_res, host):
+        LOG.debug("In RPC Call for Sync Tap Resources: Host=%s, MSG=%s" %
+                  (host, sync_tap_res))
+
+        context = neutron_context.get_admin_context()
+
+        cctxt = self.client.prepare(fanout=True)
+        cctxt.cast(context, 'sync_tap_resources', sync_tap_res=sync_tap_res,
+                   host=host)
+
         return
 
 
@@ -56,7 +72,7 @@ class TaasAgentRpcCallback(api.TaasAgentRpcCallbackMixin):
         self.taas_driver.initialize()
 
         self._taas_rpc_setup()
-        TaasAgentService(self).start()
+        TaasAgentService(self).start(self.taas_plugin_rpc, self.conf.host)
 
     def consume_api(self, agent_api):
         self.agent_api = agent_api
@@ -144,7 +160,7 @@ class TaasAgentService(service.Service):
         super(TaasAgentService, self).__init__()
         self.driver = driver
 
-    def start(self):
+    def start(self, taas_plugin_rpc, host):
         super(TaasAgentService, self).start()
 
         if self.driver.get_driver_type() == \
@@ -154,3 +170,9 @@ class TaasAgentService(service.Service):
                 self.driver.periodic_tasks,
                 None
             )
+
+        if self.driver.get_driver_type() != \
+                taas_ovs_consts.EXTENSION_DRIVER_TYPE:
+            rpc_msg = {'host_id': host}
+            taas_plugin_rpc.sync_tap_resources(rpc_msg, host)
+            return
