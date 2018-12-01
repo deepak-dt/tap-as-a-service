@@ -13,11 +13,6 @@
 # under the License.
 
 
-#
-# This class implements a utility functions for SRIOV NIC Switch Driver
-#
-
-
 def get_list_from_ranges_str(ranges_str):
     """Convert the range in string format to ranges list
 

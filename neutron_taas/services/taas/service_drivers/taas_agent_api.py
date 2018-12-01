@@ -18,10 +18,10 @@ from neutron.common import rpc as n_rpc
 from neutron_lib import constants
 from neutron_taas.services.taas.service_drivers import (service_driver_context
                                                         as sd_context)
-
+from neutron_taas.services.taas.taas_plugin import TaasPlugin
 from oslo_log import log as logging
-from oslo_utils import excutils
 import oslo_messaging as messaging
+from oslo_utils import excutils
 
 LOG = logging.getLogger(__name__)
 
@@ -50,10 +50,10 @@ class TaasCallbacks(object):
             ts_port = self.plugin._get_port_details(
                 context, ts['port_id'])
             if ts_port['binding:host_id'] != host:
-                continue;
+                continue
 
             driver_context = sd_context.TapServiceContext(self.plugin,
-                context, ts)
+                                                          context, ts)
             try:
                 self.rpc_driver.create_tap_service_postcommit(driver_context)
             except Exception:
@@ -72,7 +72,7 @@ class TaasCallbacks(object):
             # Filter out the tap flows associated with distinct tap services
             for tf in active_tfs:
                 driver_context = sd_context.TapFlowContext(self.plugin,
-                    context, tf)
+                                                           context, tf)
                 try:
                     self.rpc_driver.create_tap_flow_postcommit(driver_context)
                 except Exception:

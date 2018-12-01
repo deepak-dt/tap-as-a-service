@@ -21,7 +21,7 @@ from neutron.services import service_base
 from neutron_lib import constants
 from neutron_lib import exceptions as n_exc
 
-from neutron_taas.common import constants  as taas_consts
+from neutron_taas.common import constants as taas_consts
 from neutron_taas.common import utils as common_utils
 from neutron_taas.db import taas_db
 from neutron_taas.extensions import taas as taas_ex
@@ -50,7 +50,7 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
         LOG.debug("TAAS PLUGIN INITIALIZED")
         self.service_type_manager = st_db.ServiceTypeManager.get_instance()
         add_provider_configuration(self.service_type_manager,
-            taas_consts.TAAS)
+                                   taas_consts.TAAS)
         self._load_drivers()
         self.driver = self._get_driver_for_provider(self.default_provider)
 
@@ -177,19 +177,21 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                           "port: %(port)s "
                           "dest_port_existing: %(dest_port_existing)s "
                           "ts_port: %(ts_port)s ",
-                          {'src_port_existing': src_port_existing['binding:host_id'],
+                          {'src_port_existing': src_port_existing[
+                           'binding:host_id'],
                            'port': port['binding:host_id'],
-                           'dest_port_existing': dest_port_existing['binding:host_id'],
+                           'dest_port_existing': dest_port_existing[
+                           'binding:host_id'],
                            'ts_port': ts_port['binding:host_id']})
 
-                if (src_port_existing['binding:host_id'] and \
-                    port['binding:host_id'] and \
-                    dest_port_existing['binding:host_id'] and \
-                    ts_port['binding:host_id']) and \
-                    ((src_port_existing['binding:host_id'] != \
-                      port['binding:host_id']) or \
-                          (dest_port_existing['binding:host_id'] != \
-                              ts_port['binding:host_id'])):
+                if (src_port_existing['binding:host_id']
+                    and port['binding:host_id']
+                    and dest_port_existing['binding:host_id']
+                    and ts_port['binding:host_id']) and (
+                    (src_port_existing['binding:host_id'] !=
+                     port['binding:host_id'])
+                    or (dest_port_existing['binding:host_id'] !=
+                        ts_port['binding:host_id'])):
                     continue
 
                 vlan_filter_list_iter = sorted(
@@ -202,7 +204,8 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                 overlapping_vlans = list(set(
                     vlan_filter_list_iter).intersection(vlan_filter_list_curr))
 
-                LOG.debug("taas: vlan_filter_list_iter: %(vlan_filter_list_iter)s "
+                LOG.debug("taas: vlan_filter_list_iter: "
+                          "%(vlan_filter_list_iter)s "
                           "vlan_filter_list_curr: %(vlan_filter_list_curr)s "
                           "overlapping_vlans: %(overlapping_vlans)s ",
                           {'vlan_filter_list_iter': vlan_filter_list_iter,

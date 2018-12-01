@@ -22,6 +22,7 @@ import mock
 import re
 
 from neutron_lib import exceptions as n_exc
+from neutron_taas.common import utils as common_utils
 from neutron_taas.extensions import taas
 from neutron_taas.services.taas.drivers.linux import sriov_nic_utils
 from neutron_taas.tests import base
@@ -115,13 +116,13 @@ class TestSriovNicUtils(base.TaasTestCase):
 
     def test_get_ranges_str_from_list(self):
         input_list = [4, 11, 12, 13, 25, 26, 27]
-        self.assertEqual("4,11-13,25-27", sriov_nic_utils.SriovNicUtils().
+        self.assertEqual("4,11-13,25-27", common_utils.
                          get_ranges_str_from_list(input_list))
 
     def test_get_list_from_ranges_str(self):
         input_str = "4,6,10-13,25-27"
         expected_output = [4, 6, 10, 11, 12, 13, 25, 26, 27]
-        self.assertEqual(expected_output, sriov_nic_utils.SriovNicUtils().
+        self.assertEqual(expected_output, common_utils.
                          get_list_from_ranges_str(input_str))
 
     def test_get_vf_num_by_pci_address_neg(self):

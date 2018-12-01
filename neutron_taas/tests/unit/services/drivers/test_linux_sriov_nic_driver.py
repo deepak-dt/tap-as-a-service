@@ -93,7 +93,8 @@ class TestSriovNicTaas(base.TaasTestCase):
             assert_called_once_with(tap_service['port'])
 
     @mock.patch.object(sriov_nic_taas, 'sriov_utils')
-    def test_create_tap_flow(self, mock_sriov_utils):
+    @mock.patch.object(sriov_nic_taas, 'common_utils')
+    def test_create_tap_flow(self, mock_sriov_utils, mock_common_utils):
         tap_flow = {'port': FAKE_TAP_SERVICE['port'],
                     'tap_service_port': FAKE_TAP_SERVICE['port'],
                     'vlan_filter_list': '1-5,9,18,20,27-30,4000-4095',
@@ -102,10 +103,9 @@ class TestSriovNicTaas(base.TaasTestCase):
         ts_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
         mock_sriov_utils.SriovNicUtils().get_sriov_port_params.\
             side_effect = [src_port_params, ts_port_params]
-        mock_sriov_utils.SriovNicUtils().get_list_from_ranges_str.\
+        mock_common_utils.get_list_from_ranges_str.\
             side_effect = [[4, 6, 10, 11], [4, 5, 6, 7, 9, 11, 12]]
-        mock_sriov_utils.SriovNicUtils().get_ranges_str_from_list.\
-            return_value = '4-7, 11'
+        mock_common_utils.get_ranges_str_from_list.return_value = '4-7, 11'
         obj = sriov_nic_taas.SriovNicTaasDriver()
         obj.initialize()
         obj.create_tap_flow(tap_flow)
@@ -114,8 +114,9 @@ class TestSriovNicTaas(base.TaasTestCase):
                                     '4-7, 11', False, 'IN')
 
     @mock.patch.object(sriov_nic_taas, 'sriov_utils')
+    @mock.patch.object(sriov_nic_taas, 'common_utils')
     def test_create_tap_flow_no_vlan_filter_on_source_and_probe(
-            self, mock_sriov_utils):
+            self, mock_sriov_utils, mock_common_utils):
         tap_flow = {'port': FAKE_TAP_SERVICE['port'],
                     'tap_service_port': FAKE_TAP_SERVICE['port'],
                     'tap_flow': {'direction': 'IN', 'vlan_filter': 20}}
@@ -124,10 +125,9 @@ class TestSriovNicTaas(base.TaasTestCase):
         src_port_params['src_vlans'] = None
         mock_sriov_utils.SriovNicUtils().get_sriov_port_params.\
             side_effect = [src_port_params, ts_port_params]
-        mock_sriov_utils.SriovNicUtils().get_list_from_ranges_str.\
+        mock_common_utils.get_list_from_ranges_str.\
             side_effect = [[4, 6, 10, 11], [4, 5, 6, 7, 9, 11, 12]]
-        mock_sriov_utils.SriovNicUtils().get_ranges_str_from_list.\
-            return_value = '4-7, 11'
+        mock_common_utils.get_ranges_str_from_list.return_value = '4-7, 11'
         obj = sriov_nic_taas.SriovNicTaasDriver()
         obj.initialize()
         obj.create_tap_flow(tap_flow)
@@ -183,7 +183,8 @@ class TestSriovNicTaas(base.TaasTestCase):
         self.assertIsNotNone(obj.create_tap_flow, tap_flow)
 
     @mock.patch.object(sriov_nic_taas, 'sriov_utils')
-    def test_delete_tap_flow(self, mock_sriov_utils):
+    @mock.patch.object(sriov_nic_taas, 'common_utils')
+    def test_delete_tap_flow(self, mock_sriov_utils, mock_common_utils):
         tap_flow = {'port': FAKE_TAP_SERVICE['port'],
                     'tap_service_port': FAKE_TAP_SERVICE['port'],
                     'source_vlans_list': [4, 5, 9],
@@ -193,10 +194,9 @@ class TestSriovNicTaas(base.TaasTestCase):
         ts_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
         mock_sriov_utils.SriovNicUtils().get_sriov_port_params.\
             side_effect = [src_port_params, ts_port_params]
-        mock_sriov_utils.SriovNicUtils().get_list_from_ranges_str.\
+        mock_common_utils.get_list_from_ranges_str.\
             side_effect = [[4], [5], [9], [4, 5, 9]]
-        mock_sriov_utils.SriovNicUtils().get_ranges_str_from_list.\
-            return_value = '4-5, 9'
+        mock_common_utils.get_ranges_str_from_list.return_value = '4-5, 9'
         obj = sriov_nic_taas.SriovNicTaasDriver()
         obj.initialize()
         self.assertIsNone(obj.delete_tap_flow(tap_flow))
