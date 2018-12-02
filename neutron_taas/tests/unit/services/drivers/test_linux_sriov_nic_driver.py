@@ -22,18 +22,18 @@ from neutron_taas.tests import base
 
 FAKE_PORT_PARAMS = {
     'mac': '52:54:00:12:35:02', 'pci_slot': 3, 'vf_index': '89',
-    'pf_device': 'net_enp0s3_52_54_00_12_35_02', 'src_vlans': 20}
+    'pf_device': 'net_enp0s3_52_54_00_12_35_02', 'src_vlans': '20'}
 
 FAKE_TAP_SERVICE = {'port': {
     'id': 'fake_1', 'mac_address': "52:54:00:12:35:02",
     'binding:profile': {'pci_slot': 3},
-    'binding:vif_details': {'vlan': 20}}}
+    'binding:vif_details': {'vlan': '20'}}}
 
 FAKE_TAP_FLOW = {'port': FAKE_TAP_SERVICE['port'],
                  'ts_port': FAKE_TAP_SERVICE['port'],
-                 'source_vlans_list': [4, 5, 9],
+                 'source_vlans_list': ['4-6', '8-10', '15-18,20'],
                  'vlan_filter_list': '1-5,9,18,20,27-30,4000-4095',
-                 'tap_flow': {'direction': 'IN', 'vlan_filter': 20}}
+                 'tap_flow': {'direction': 'IN', 'vlan_filter': '20'}}
 
 
 class TestSriovNicTaas(base.TaasTestCase):
@@ -93,47 +93,38 @@ class TestSriovNicTaas(base.TaasTestCase):
             assert_called_once_with(tap_service['port'])
 
     @mock.patch.object(sriov_nic_taas, 'sriov_utils')
-    @mock.patch.object(sriov_nic_taas, 'common_utils')
-    def test_create_tap_flow(self, mock_sriov_utils, mock_common_utils):
+    def test_create_tap_flow(self, mock_sriov_utils):
         tap_flow = {'port': FAKE_TAP_SERVICE['port'],
                     'tap_service_port': FAKE_TAP_SERVICE['port'],
                     'vlan_filter_list': '1-5,9,18,20,27-30,4000-4095',
-                    'tap_flow': {'direction': 'IN', 'vlan_filter': 20}}
-        src_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
-        ts_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
+                    'tap_flow': {'direction': 'IN', 'vlan_filter': '20'}}
+        src_port_params = ts_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
         mock_sriov_utils.SriovNicUtils().get_sriov_port_params.\
             side_effect = [src_port_params, ts_port_params]
-        mock_common_utils.get_list_from_ranges_str.\
-            side_effect = [[4, 6, 10, 11], [4, 5, 6, 7, 9, 11, 12]]
-        mock_common_utils.get_ranges_str_from_list.return_value = '4-7, 11'
         obj = sriov_nic_taas.SriovNicTaasDriver()
         obj.initialize()
         obj.create_tap_flow(tap_flow)
         mock_sriov_utils.SriovNicUtils().execute_sysfs_command.\
             assert_called_once_with('add', ts_port_params, src_port_params,
-                                    '4-7, 11', False, 'IN')
+                                    '20', False, 'IN')
 
     @mock.patch.object(sriov_nic_taas, 'sriov_utils')
-    @mock.patch.object(sriov_nic_taas, 'common_utils')
     def test_create_tap_flow_no_vlan_filter_on_source_and_probe(
-            self, mock_sriov_utils, mock_common_utils):
+            self, mock_sriov_utils):
         tap_flow = {'port': FAKE_TAP_SERVICE['port'],
                     'tap_service_port': FAKE_TAP_SERVICE['port'],
-                    'tap_flow': {'direction': 'IN', 'vlan_filter': 20}}
+                    'tap_flow': {'direction': 'IN', 'vlan_filter': '20'}}
         src_port_params = ts_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
         ts_port_params['vlan_filter'] = None
         src_port_params['src_vlans'] = None
         mock_sriov_utils.SriovNicUtils().get_sriov_port_params.\
             side_effect = [src_port_params, ts_port_params]
-        mock_common_utils.get_list_from_ranges_str.\
-            side_effect = [[4, 6, 10, 11], [4, 5, 6, 7, 9, 11, 12]]
-        mock_common_utils.get_ranges_str_from_list.return_value = '4-7, 11'
         obj = sriov_nic_taas.SriovNicTaasDriver()
         obj.initialize()
         obj.create_tap_flow(tap_flow)
         mock_sriov_utils.SriovNicUtils().execute_sysfs_command.\
             assert_called_once_with('add', ts_port_params, src_port_params,
-                                    '4-7, 11', False, 'IN')
+                                    '20', False, 'IN')
 
     @mock.patch.object(sriov_nic_taas, 'sriov_utils')
     def test_create_tap_flow_no_source_pci_slot(
@@ -183,20 +174,15 @@ class TestSriovNicTaas(base.TaasTestCase):
         self.assertIsNotNone(obj.create_tap_flow, tap_flow)
 
     @mock.patch.object(sriov_nic_taas, 'sriov_utils')
-    @mock.patch.object(sriov_nic_taas, 'common_utils')
-    def test_delete_tap_flow(self, mock_sriov_utils, mock_common_utils):
+    def test_delete_tap_flow(self, mock_sriov_utils):
         tap_flow = {'port': FAKE_TAP_SERVICE['port'],
                     'tap_service_port': FAKE_TAP_SERVICE['port'],
-                    'source_vlans_list': [4, 5, 9],
+                    'source_vlans_list': ['4-6', '8-10', '15-18,20'],
                     'vlan_filter_list': ['1-5,9,18,20,27-30,4000-4095'],
-                    'tap_flow': {'direction': 'IN', 'vlan_filter': 20}}
-        src_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
-        ts_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
+                    'tap_flow': {'direction': 'IN', 'vlan_filter': '20'}}
+        src_port_params = ts_port_params = copy.deepcopy(FAKE_PORT_PARAMS)
         mock_sriov_utils.SriovNicUtils().get_sriov_port_params.\
             side_effect = [src_port_params, ts_port_params]
-        mock_common_utils.get_list_from_ranges_str.\
-            side_effect = [[4], [5], [9], [4, 5, 9]]
-        mock_common_utils.get_ranges_str_from_list.return_value = '4-5, 9'
         obj = sriov_nic_taas.SriovNicTaasDriver()
         obj.initialize()
         self.assertIsNone(obj.delete_tap_flow(tap_flow))
