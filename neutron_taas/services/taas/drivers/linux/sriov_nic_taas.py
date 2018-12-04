@@ -181,17 +181,17 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
 
         common_vlans_list = list(set(src_vlans_list).intersection(
             vlan_filter_list))
-        common_vlans_ranges_str = common_utils.get_ranges_str_from_list(
+        common_vlans_rng_str = common_utils.get_ranges_str_from_list(
             common_vlans_list)
 
         LOG.info("TaaS src_vlans_list %(src_vlans_list)s, "
                  "vlan_filter_list %(vlan_filter_list)s, "
                  "common_vlans_list %(common_vlans_list)s, "
-                 "common_vlans_ranges_str %(common_vlans_ranges_str)s; ",
+                 "common_vlans_rng_str %(common_vlans_rng_str)s; ",
                  {'src_vlans_list': src_vlans_list,
                   'vlan_filter_list': vlan_filter_list,
                   'common_vlans_list': common_vlans_list,
-                  'common_vlans_ranges_str': common_vlans_ranges_str})
+                  'common_vlans_rng_str': common_vlans_rng_str})
 
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
@@ -203,7 +203,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                         'add',
                         ts_port_params,
                         src_port_params,
-                        common_vlans_ranges_str,
+                        common_vlans_rng_str,
                         vf_to_vf_all_vlans,
                         direction)
                 except Exception:
@@ -213,7 +213,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                             ts_pf_dev=ts_port_params['pf_device'],
                             ts_vf_index=ts_port_params['vf_index'],
                             source_vf_index=src_port_params['vf_index'],
-                            common_vlans_ranges_str=common_vlans_ranges_str,
+                            common_vlans_rng_str=common_vlans_rng_str,
                             vf_to_vf_all_vlans=vf_to_vf_all_vlans,
                             direction=direction)
         return
@@ -302,17 +302,17 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         common_vlans_list = \
             list(set(src_vlans_list).intersection(vlan_filter_list))
 
-        common_vlans_ranges_str = \
+        common_vlans_rng_str = \
             common_utils.get_ranges_str_from_list(common_vlans_list)
 
         LOG.info("TaaS src_vlans_list %(src_vlans_list)s, "
                  "vlan_filter_list %(vlan_filter_list)s, "
                  "common_vlans_list %(common_vlans_list)s, "
-                 "common_vlans_ranges_str %(common_vlans_ranges_str)s; ",
+                 "common_vlans_rng_str %(common_vlans_rng_str)s; ",
                  {'src_vlans_list': src_vlans_list,
                   'vlan_filter_list': vlan_filter_list,
                   'common_vlans_list': common_vlans_list,
-                  'common_vlans_ranges_str': common_vlans_ranges_str})
+                  'common_vlans_rng_str': common_vlans_rng_str})
 
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
@@ -335,18 +335,18 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                             ts_pf_dev=ts_port_params['pf_device'],
                             ts_vf_index=ts_port_params['vf_index'],
                             source_vf_index=src_port_params['vf_index'],
-                            common_vlans_ranges_str=taas_consts.VLAN_RANGE,
+                            common_vlans_rng_str=taas_consts.VLAN_RANGE,
                             vf_to_vf_all_vlans=vf_to_vf_all_vlans,
                             direction=direction)
 
-                if common_vlans_ranges_str:
+                if common_vlans_rng_str:
                     try:
                         LOG.info("TaaS invoking execute_sysfs_command")
                         self.sriov_utils.execute_sysfs_command(
                             'add',
                             ts_port_params,
                             src_port_params,
-                            common_vlans_ranges_str,
+                            common_vlans_rng_str,
                             False,
                             'BOTH')
                     except Exception:
@@ -357,8 +357,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                                 ts_pf_dev=ts_port_params['pf_device'],
                                 ts_vf_index=ts_port_params['vf_index'],
                                 source_vf_index=src_port_params['vf_index'],
-                                common_vlans_ranges_str= \
-                                    common_vlans_ranges_str,
+                                common_vlans_rng_str=common_vlans_rng_str,
                                 vf_to_vf_all_vlans=vf_to_vf_all_vlans,
                                 direction=direction)
 

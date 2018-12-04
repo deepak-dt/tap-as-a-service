@@ -28,6 +28,7 @@ def get_list_from_ranges_str(ranges_str):
                 if '-' in range_item else [int(range_item)])
                 for range_item in ranges_str.split(',')), [])
 
+
 def get_ranges_str_from_list(ranges):
     """Convert the ranges list to string format
 
@@ -46,3 +47,4 @@ def get_ranges_str_from_list(ranges):
     return ",".join([str(range_item[0]) if len(range_item) == 1
                      else str(range_item[0]) + "-" + str(range_item[-1])
                      for range_item in ranges_str])
+
