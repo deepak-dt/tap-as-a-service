@@ -25,6 +25,7 @@ from neutron_taas.services.taas.drivers.linux import sriov_nic_utils \
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
+import threading
 
 LOG = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         LOG.info("Initializing Taas SRIOV NIC Switch Driver")
         self.agent_api = None
         self.root_helper = config.get_root_helper(cfg.CONF)
+        self.lock = threading.Lock()
 
     def initialize(self):
         LOG.info("Initialize routine called for Taas SRIOV NIC Switch Driver")
@@ -194,24 +196,26 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
                 src_port_params['vf_index']:
-            try:
-                LOG.info("TaaS invoking execute_sysfs_command")
-                self.sriov_utils.execute_sysfs_command('add',
-                                                       ts_port_params,
-                                                       src_port_params,
-                                                       common_vlans_ranges_str,
-                                                       vf_to_vf_all_vlans,
-                                                       direction)
-            except Exception:
-                LOG.error("TaaS error in invoking execute_sysfs_command")
-                with excutils.save_and_reraise_exception():
-                    raise taas.SriovNicSwitchDriverInvocationError(
-                        ts_pf_dev=ts_port_params['pf_device'],
-                        ts_vf_index=ts_port_params['vf_index'],
-                        source_vf_index=src_port_params['vf_index'],
-                        common_vlans_ranges_str=common_vlans_ranges_str,
-                        vf_to_vf_all_vlans=vf_to_vf_all_vlans,
-                        direction=direction)
+            with self.lock:
+                try:
+                    LOG.info("TaaS invoking execute_sysfs_command")
+                    self.sriov_utils.execute_sysfs_command(
+                        'add',
+                        ts_port_params,
+                        src_port_params,
+                        common_vlans_ranges_str,
+                        vf_to_vf_all_vlans,
+                        direction)
+                except Exception:
+                    LOG.error("TaaS error in invoking execute_sysfs_command")
+                    with excutils.save_and_reraise_exception():
+                        raise taas.SriovNicSwitchDriverInvocationError(
+                            ts_pf_dev=ts_port_params['pf_device'],
+                            ts_vf_index=ts_port_params['vf_index'],
+                            source_vf_index=src_port_params['vf_index'],
+                            common_vlans_ranges_str=common_vlans_ranges_str,
+                            vf_to_vf_all_vlans=vf_to_vf_all_vlans,
+                            direction=direction)
         return
 
     def delete_tap_flow(self, tap_flow):
@@ -313,35 +317,17 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
         if ts_port_params['pf_device'] and \
                 ts_port_params['vf_index'] and \
                 src_port_params['vf_index']:
-            try:
-                LOG.info("TaaS invoking execute_sysfs_command")
-                self.sriov_utils.execute_sysfs_command('rem',
-                                                       ts_port_params,
-                                                       src_port_params,
-                                                       taas_consts.VLAN_RANGE,
-                                                       False,
-                                                       'BOTH')
-            except Exception:
-                LOG.error("TaaS error in invoking execute_sysfs_command")
-                with excutils.save_and_reraise_exception():
-                    raise taas.SriovNicSwitchDriverInvocationError(
-                        ts_pf_dev=ts_port_params['pf_device'],
-                        ts_vf_index=ts_port_params['vf_index'],
-                        source_vf_index=src_port_params['vf_index'],
-                        common_vlans_ranges_str=taas_consts.VLAN_RANGE,
-                        vf_to_vf_all_vlans=vf_to_vf_all_vlans,
-                        direction=direction)
 
-            if common_vlans_ranges_str:
+            with self.lock:
                 try:
                     LOG.info("TaaS invoking execute_sysfs_command")
-                    self.sriov_utils.execute_sysfs_command(
-                        'add',
-                        ts_port_params,
-                        src_port_params,
-                        common_vlans_ranges_str,
-                        False,
-                        'BOTH')
+                    self.sriov_utils.execute_sysfs_command('rem',
+                                                           ts_port_params,
+                                                           src_port_params,
+                                                           taas_consts.
+                                                           VLAN_RANGE,
+                                                           False,
+                                                           'BOTH')
                 except Exception:
                     LOG.error("TaaS error in invoking execute_sysfs_command")
                     with excutils.save_and_reraise_exception():
@@ -349,8 +335,31 @@ class SriovNicTaasDriver(taas_base.TaasAgentDriver):
                             ts_pf_dev=ts_port_params['pf_device'],
                             ts_vf_index=ts_port_params['vf_index'],
                             source_vf_index=src_port_params['vf_index'],
-                            common_vlans_ranges_str=common_vlans_ranges_str,
+                            common_vlans_ranges_str=taas_consts.VLAN_RANGE,
                             vf_to_vf_all_vlans=vf_to_vf_all_vlans,
                             direction=direction)
+
+                if common_vlans_ranges_str:
+                    try:
+                        LOG.info("TaaS invoking execute_sysfs_command")
+                        self.sriov_utils.execute_sysfs_command(
+                            'add',
+                            ts_port_params,
+                            src_port_params,
+                            common_vlans_ranges_str,
+                            False,
+                            'BOTH')
+                    except Exception:
+                        LOG.error("TaaS error in invoking "
+                                  "execute_sysfs_command")
+                        with excutils.save_and_reraise_exception():
+                            raise taas.SriovNicSwitchDriverInvocationError(
+                                ts_pf_dev=ts_port_params['pf_device'],
+                                ts_vf_index=ts_port_params['vf_index'],
+                                source_vf_index=src_port_params['vf_index'],
+                                common_vlans_ranges_str= \
+                                    common_vlans_ranges_str,
+                                vf_to_vf_all_vlans=vf_to_vf_all_vlans,
+                                direction=direction)
 
         return
