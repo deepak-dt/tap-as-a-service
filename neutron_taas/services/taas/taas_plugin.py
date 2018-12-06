@@ -18,6 +18,9 @@ from neutron.db import servicetype_db as st_db
 from neutron.extensions import portbindings
 from neutron.services import provider_configuration as pconf
 from neutron.services import service_base
+from neutron_lib.callbacks import events
+from neutron_lib.callbacks import registry
+from neutron_lib.callbacks import resources
 from neutron_lib import constants
 from neutron_lib import exceptions as n_exc
 
@@ -53,6 +56,10 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                                    taas_consts.TAAS)
         self._load_drivers()
         self.driver = self._get_driver_for_provider(self.default_provider)
+
+        registry.subscribe(self.handle_delete_port,
+                           resources.PORT,
+                           events.PRECOMMIT_DELETE)
 
         return
 
@@ -254,3 +261,22 @@ class TaasPlugin(taas_db.Taas_db_Mixin):
                 with excutils.save_and_reraise_exception():
                     LOG.error("Failed to delete tap flow on driver. "
                               "tap_flow: %s", id)
+
+    def handle_delete_port(self, resource, event, trigger, context, **kwargs):
+        deleted_port = kwargs['port']
+        LOG.info("TaaS: Handle Delete Port: %s", deleted_port['id'])
+
+        # Get list of configured tap-services
+        t_s_collection = self.get_tap_services(
+            context,
+            filters={'port_id': [deleted_port['id']]}, fields=['id'])
+
+        for t_s in t_s_collection:
+            self.delete_tap_service(context, t_s['id'])
+
+        t_f_collection = self.get_tap_flows(
+            context,
+            filters={'source_port': [deleted_port['id']]}, fields=['id'])
+
+        for t_f in t_f_collection:
+            self.delete_tap_flow(context, t_f['id'])

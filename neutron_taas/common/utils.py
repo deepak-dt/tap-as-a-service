@@ -47,4 +47,3 @@ def get_ranges_str_from_list(ranges):
     return ",".join([str(range_item[0]) if len(range_item) == 1
                      else str(range_item[0]) + "-" + str(range_item[-1])
                      for range_item in ranges_str])
-
