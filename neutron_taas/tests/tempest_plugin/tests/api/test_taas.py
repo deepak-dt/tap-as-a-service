@@ -17,6 +17,7 @@
 from tempest.common import utils
 from tempest import config
 from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 
 from neutron_taas.tests.tempest_plugin.tests.api import base
 
@@ -66,4 +67,10 @@ class TaaSExtensionTestJSON(base.BaseTaaSTest):
         tap_service = self.create_tap_service(port_id=self.port['id'])
         # delete port
         self.ports_client.delete_port(self.port['id'])
-        self.tap_services_client.delete_tap_service(tap_service['id'])
+        # delete tap-service, if it exists
+        try:
+            self.tap_services_client.delete_tap_service(tap_service['id'])
+        # if tap-service is not found, this means it was deleted in the test
+        except lib_exc.NotFound:
+            pass
+
